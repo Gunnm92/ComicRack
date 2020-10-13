@@ -13,7 +13,6 @@ RUN   dpkg --add-architecture i386 && \
 	apt -y install --install-recommends winehq-stable && \
 	apt-get -y --purge remove software-properties-common gnupg2 && \
 	apt-get -y autoremove && \
-	apt update && \
 	
 	cd "\$(mktemp -d)" && \ 
 	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
