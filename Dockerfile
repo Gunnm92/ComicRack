@@ -2,7 +2,8 @@ FROM ich777/debian-buster
 
 LABEL maintainer="admin@minenet.at"
 
-RUN  dpkg --add-architecture i386 && \
+RUN dpkg --add-architecture i386 && \
+	apt-get update && \
 	apt -y install --install-recommends gnupg2 software-properties-common && \
 	wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add - && \
 	apt-add-repository https://dl.winehq.org/wine-builds/debian/ && \
