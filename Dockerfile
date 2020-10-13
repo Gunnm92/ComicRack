@@ -18,14 +18,14 @@ RUN   dpkg --add-architecture i386 && \
 	WINEPREFIX="$HOME/comicrack32" WINEARCH=win32 wine wineboot && \
 	WINEPREFIX="$HOME/comicrack32" WINEARCH=win32 winetricks dotnet45 wmi corefonts wsh57 && \
 	
-	cd "\$(mktemp -d)" 
-	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
-	chmod +x winetricks
-	mv winetricks /usr/bin
-	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion
-	mv winetricks.bash-completion /usr/share/bash-completion/completions/winetricks
-	chmod +x update_winetricks
-	mv update_winetricks /usr/bin/
+	cd "\$(mktemp -d)" && \ 
+	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
+	chmod +x winetricks && \
+	mv winetricks /usr/bin && \
+	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion && \
+	mv winetricks.bash-completion /usr/share/bash-completion/completions/winetricks && \
+	chmod +x update_winetricks && \
+	mv update_winetricks /usr/bin/ && \
 	
 	rm -rf /var/lib/apt/lists/*
 
