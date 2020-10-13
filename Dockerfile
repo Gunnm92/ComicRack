@@ -14,7 +14,6 @@ RUN   dpkg --add-architecture i386 && \
 	apt-get -y --purge remove software-properties-common gnupg2 && \
 	apt-get -y autoremove && \
 	apt update && \
-	apt install --install-recommends mono-complete && \
 	
 	cd "\$(mktemp -d)" && \ 
 	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
