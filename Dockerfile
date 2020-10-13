@@ -15,8 +15,8 @@ RUN dpkg --add-architecture i386 && \
 	mkdir /tmp/winetricks && \
 	cd /tmp/winetricks && \ 
 	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
-	chmod +x winetricks && \
-	mv winetricks /usr/bin && \
+	cp winetricks /usr/bin/winetricks && \
+	chmod +x /usr/bin/winetricks && \
 	rm -rf /tmp/winetricks && \
 	
 	apt-get -y --purge remove software-properties-common gnupg2 && \
