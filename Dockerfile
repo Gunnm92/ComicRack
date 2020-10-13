@@ -1,4 +1,4 @@
-FROM ich777/novnc-baseimage
+FROM ich777/debian-buster
 
 RUN wget -nc https://dl.winehq.org/wine-builds/winehq.key && \
       apt-key add winehq.key && \
