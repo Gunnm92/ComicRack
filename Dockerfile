@@ -13,9 +13,9 @@ RUN   dpkg --add-architecture i386 && \
 	apt -y install --install-recommends winehq-stable && \
 	apt-get -y --purge remove software-properties-common gnupg2 && \
 	apt-get -y autoremove && \
+	apt update && \
+	apt install --install-recommends winehq-stable && \
 	rm -rf /var/lib/apt/lists/*
-      apt update && \
-      apt install --install-recommends winehq-stable
 
 EXPOSE 8080
 
