@@ -14,9 +14,19 @@ RUN   dpkg --add-architecture i386 && \
 	apt-get -y --purge remove software-properties-common gnupg2 && \
 	apt-get -y autoremove && \
 	apt update && \
-	apt install --install-recommends winetricks mono-complete dotnet45 wmi corefonts wsh57 && \
+	apt install --install-recommends mono-complete dotnet45 wmi corefonts wsh57 && \
 	WINEPREFIX="$HOME/comicrack32" WINEARCH=win32 wine wineboot && \
 	WINEPREFIX="$HOME/comicrack32" WINEARCH=win32 winetricks dotnet45 wmi corefonts wsh57 && \
+	
+	cd "\$(mktemp -d)" 
+	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+	chmod +x winetricks
+	mv winetricks /usr/bin
+	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion
+	mv winetricks.bash-completion /usr/share/bash-completion/completions/winetricks
+	chmod +x update_winetricks
+	mv update_winetricks /usr/bin/
+	
 	rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
