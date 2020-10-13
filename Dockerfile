@@ -12,7 +12,8 @@ RUN dpkg --add-architecture i386 && \
 	apt-get update && \
 	apt -y install --install-recommends winehq-stable && \
 	
-	cd "\$(mktemp -d)" && \ 
+	mkdir /tmp/winetricks && \
+	cd /tmp/winetricks && \ 
 	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
 	chmod +x winetricks && \
 	mv winetricks /usr/bin && \
@@ -20,6 +21,7 @@ RUN dpkg --add-architecture i386 && \
 	mv winetricks.bash-completion /usr/share/bash-completion/completions/winetricks && \
 	chmod +x update_winetricks && \
 	mv update_winetricks /usr/bin/ && \
+	rm -rf /tmp/winetricks && \
 	
 	apt-get -y --purge remove software-properties-common gnupg2 && \
 	apt-get -y autoremove && \
