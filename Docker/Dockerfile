@@ -11,7 +11,7 @@ RUN apt-get update && apt-get -y install xvfb x11vnc xdotool wget tar supervisor
 RUN wget -O - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
 RUN echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ eoan main' |tee /etc/apt/sources.list.d/winehq.list
 RUN apt-get update && apt-get -y install winehq-stable
-RUN mkdir /opt/wine-stable/share/wine/winetricks && wget -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+RUN mkdir /opt/wine-stable/share/wine/winetricks && cd /opt/wine-stable/share/wine/winetricks && wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x /opt/wine-stable/share/wine/winetricks/winetricks
 RUN WINARCH=win32 /opt/wine-stable/share/wine/winetricks/winetricks -q dotnet45 wmi corefonts wsh57
 RUN apt-get -y full-upgrade && apt-get clean
