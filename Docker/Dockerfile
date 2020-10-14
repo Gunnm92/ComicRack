@@ -7,7 +7,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
 RUN dpkg --add-architecture i386
-RUN apt-get update && apt-get -y install xvfb x11vnc xdotool wget tar supervisor net-tools fluxbox gnupg2
+RUN apt-get update && apt-get -y install xvfb x11vnc xdotool wget tar supervisor net-tools fluxbox gnupg2 cabextract
 RUN wget -O - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
 RUN echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ eoan main' |tee /etc/apt/sources.list.d/winehq.list
 RUN apt-get update && apt-get -y install winehq-stable
@@ -18,9 +18,9 @@ RUN mkdir /root/comicrack && \
     wget https://github.com/Gunnm92/ComicRack/raw/main/ComicRackSetup09178.exe
 RUN apt-get -y full-upgrade && apt-get clean
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN WINEPREFIX=comicrack32 WINEARCH=win32 wine wineboot
+RUN WINEARCH=win32 ./usr/bin/winetricks -q dotnet45 wmi corefonts wsh57
 
-ENV WINEPREFIX /root/.wine
-ENV WINEARCH win32
 ENV DISPLAY :0
 
 WORKDIR /root/
