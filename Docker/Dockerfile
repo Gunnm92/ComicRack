@@ -18,9 +18,9 @@ RUN mkdir /root/comicrack && \
     wget https://github.com/Gunnm92/ComicRack/raw/main/ComicRackSetup09178.exe
 RUN apt-get -y full-upgrade && apt-get clean
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-RUN WINEPREFIX=comicrack32 WINEARCH=win32 wine wineboot
-RUN WINEARCH=win32 ./usr/bin/winetricks -q dotnet45 wmi corefonts wsh57
 
+ENV WINEPREFIX /root/prefix32
+ENV WINEARCH win32
 ENV DISPLAY :0
 
 WORKDIR /root/
