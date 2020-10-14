@@ -13,7 +13,9 @@ RUN echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ eoan main' |tee /etc/apt
 RUN apt-get update && apt-get -y install winehq-stable
 RUN mkdir /opt/wine-stable/share/wine/winetricks && cd /opt/wine-stable/share/wine/winetricks && wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x /opt/wine-stable/share/wine/winetricks/winetricks
-RUN WINEARCH=win32 /opt/wine-stable/share/wine/winetricks/winetricks -q dotnet45 wmi corefonts wsh57
+RUN mkdir /tmp/comicrack && \
+    cd /tmp/comicrack && \
+    wget https://github.com/Gunnm92/ComicRack/raw/main/ComicRackSetup09178.exe
 RUN apt-get -y full-upgrade && apt-get clean
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
