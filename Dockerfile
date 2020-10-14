@@ -4,7 +4,7 @@ LABEL maintainer="admin@minenet.at"
 
 RUN dpkg --add-architecture i386 && \
 	apt-get update && \
-	apt -y install --install-recommends gnupg2 software-properties-common && \
+	apt -y install --install-recommends gnupg2 software-properties-common cabextract && \
 	wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add - && \
 	apt-add-repository https://dl.winehq.org/wine-builds/debian/ && \
 	wget -O- -q https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/Release.key | apt-key add - && \
