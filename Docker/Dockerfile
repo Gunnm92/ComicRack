@@ -11,15 +11,15 @@ RUN apt-get update && apt-get -y install xvfb x11vnc xdotool wget tar supervisor
 RUN wget -O - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
 RUN echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ eoan main' |tee /etc/apt/sources.list.d/winehq.list
 RUN apt-get update && apt-get -y install winehq-stable
-RUN mkdir /opt/wine-stable/share/wine/winetricks && cd /opt/wine-stable/share/wine/winetricks && wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
-RUN chmod +x /opt/wine-stable/share/wine/winetricks/winetricks
-RUN mkdir /tmp/comicrack && \
-    cd /tmp/comicrack && \
+RUN cd /usr/bin/ && wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+RUN chmod +x /usr/bin/winetricks
+RUN mkdir /root/comicrack && \
+    cd /root/comicrack && \
     wget https://github.com/Gunnm92/ComicRack/raw/main/ComicRackSetup09178.exe
 RUN apt-get -y full-upgrade && apt-get clean
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-ENV WINEPREFIX /root/prefix32
+ENV WINEPREFIX /root/.wine
 ENV WINEARCH win32
 ENV DISPLAY :0
 
