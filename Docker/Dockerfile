@@ -13,7 +13,7 @@ RUN echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ eoan main' |tee /etc/apt
 RUN apt-get update && apt-get -y install winehq-stable
 RUN mkdir /opt/wine-stable/share/wine/winetricks && wget -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x /opt/wine-stable/share/wine/winetricks/winetricks
-RUN WINARCH=win32 /opt/wine-stable/share/wine/winetricks/winetricks -q dotnet45 
+RUN WINARCH=win32 /opt/wine-stable/share/wine/winetricks/winetricks -q dotnet45 wmi corefonts wsh57
 RUN apt-get -y full-upgrade && apt-get clean
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
