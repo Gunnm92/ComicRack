@@ -18,6 +18,9 @@ RUN dpkg --add-architecture i386 && \
 	cp winetricks /usr/bin/winetricks && \
 	chmod +x /usr/bin/winetricks && \
 	rm -rf /tmp/winetricks && \
+	mkdir /tmp/comicrack && \
+	cd /tmp/comicrack && \
+	wget https://github.com/Gunnm92/ComicRack/raw/main/ComicRackSetup09178.exe && \
 	
 	apt-get -y --purge remove software-properties-common gnupg2 && \
 	apt-get -y autoremove && \
