@@ -7,7 +7,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
 RUN dpkg --add-architecture i386
-RUN apt-get update && apt-get -y install xvfb x11vnc xdotool wget tar supervisor net-tools fluxbox gnupg2 cabextract
+RUN apt-get update && apt-get -y install xvfb x11vnc xdotool wget tar supervisor net-tools xfce4 gnupg2 cabextract
 RUN wget -O - https://dl.winehq.org/wine-builds/winehq.key | apt-key add -
 RUN echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ eoan main' |tee /etc/apt/sources.list.d/winehq.list
 RUN apt-get update && apt-get -y install winehq-stable
