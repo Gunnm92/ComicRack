@@ -11,7 +11,7 @@ ENV HOME=/config \
 
 RUN dpkg --add-architecture i386 && \
     mkdir -p /etc/apt/keyrings && \
-    cat <<'EOF' > /etc/apt/sources.list && \
+    cat <<'EOF' > /etc/apt/sources.list
 deb http://deb.debian.org/debian trixie main contrib
 deb http://deb.debian.org/debian trixie-updates main contrib
 deb http://security.debian.org/debian-security trixie-security main contrib
