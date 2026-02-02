@@ -1,28 +1,34 @@
-# ComicRack Docker (Proton GE + Community Edition)
+# ComicRack Docker on LinuxServer Selkies
 
-This image bundles the ComicRack Community Edition Windows build with a modern Proton GE runtime and a lightweight XFCE desktop so the app can run headless inside a container while remaining controllable through VNC/noVNC. The Dockerfile now pulls GE-Proton10-29 (released January 24, 2026, with the latest DXVK/vkd3d and controller fixes) and installs the latest ComicRack CE v0.9.182 (December 19, 2025) release automatically at build time so you always ship a fresh runtime and binary. citeturn4search0turn4search1
+This build now uses the LinuxServer [Selkies base image](https://github.com/linuxserver/docker-baseimage-selkies) (Debian Trixie flavor) to provide a modern Kasm-style WebRTC desktop instead of the old noVNC stack. Selkies already wires pixelflux/pcmflux, PulseAudio, and an Openbox session behind a single HTTP/WebSocket gateway, so the container only needs to start ComicRack via Proton GE while the Selkies runtime handles the browser stream and authentication.
 
-Because Wine/Proton uses GStreamer to decode in-game media, the container installs the full GStreamer 1.0 plugin suite and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Proton can reach both the bundled modules and the system codecs, which mirrors the Bottles recommendation and the official Proton GE instructions for media foundation support. citeturn4search2turn4search3
+The image downloads GE-Proton10-29 (released January 24, 2026, with the latest DXVK/vkd3d fixes) and the ComicRack Community Edition v0.9.182 ZIP (published December 19, 2025) at build time, installs WineGStreamer support, and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Proton can reach both its own codec plugins and the system-provided GStreamer modules.
 
-## Building
-
-```bash
-docker build -f Docker/Dockerfile -t comicrack-proton .
-```
-
-The build downloads noVNC 1.6.0, websockify 0.13.0, the latest Proton GE tarball, and the current ComicRack CE ZIP by querying each project’s GitHub releases during image creation.
-
-## Running
+## Build
 
 ```bash
-docker run --rm -p 8080:8080 -p 5900:5900 comicrack-proton
+docker build -f Docker/Dockerfile -t comicrack-selkies .
 ```
 
-- `http://localhost:8080/vnc.html` opens the noVNC session that bridges VNC port 5900 to your browser.
-- Port 5900 is kept for standard VNC clients (`x11vnc` runs with `-nopw -shared`).
-- The compositor (XFCE) and ComicRack binary are launched via `supervisord`; the entrypoint runs `wineboot` once before `supervisord` so the Wine prefix is initialized before the GUI services start.
+## Run
 
-## Notes
+Selkies exposes a small web control plane on port 3000 by default and an HTTPS endpoint on 3001. Run the container and map your desired ports:
 
-- The `start.sh` entrypoint ensures `WINEPREFIX` exists, seeds it with `wineboot`, and keeps `supervisord` in the foreground while setting Proton’s `PATH`/`LD_LIBRARY_PATH`.
-- You can pin a specific Proton or ComicRack release by overriding the GitHub release URLs via build args and setting `PROTON_HOME` to an extracted tarball of your choice.
+```bash
+docker run --rm -p 3000:3000 -p 3001:3001 -v ~/comicrack:/config comicrack-selkies
+```
+
+- Access the remote desktop (with ComicRack) at `http://localhost:3000` (default `CUSTOM_PORT`) or `https://localhost:3001`.
+- Set `PASSWORD`, `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, and related Selkies env variables to lock down who can connect (see the upstream README for the full list).
+- The Wine prefix lives under `/config/comicrack/wineprefix`, so mounting `/config` keeps your database, scripts, and prefix between restarts.
+
+## Behavior
+
+- `root/defaults/autostart` simply executes `/opt/scripts/start.sh`, which initializes the Proton Wine prefix once (`wineboot`) and then launches ComicRack CE via `Proton/dist/bin/wine`.
+- GStreamer 1.0 plugins are installed (base/aux/bad/ugly/libav/pulseaudio) so any codecs invoked by ComicRack through Proton will resolve via `GST_PLUGIN_SYSTEM_PATH_1_0`.
+- If you need to pin to a different Proton or ComicRack release, download the desired tarball/ZIP outside the build and override `PROTON_HOME` or the comic archive in a derived Dockerfile.
+
+## Troubleshooting
+
+- Selkies already runs a compositor, so there is no separate VNC server​—the browser session is routed through pixelflux. Do not try to run the old noVNC port 8080.
+- To expose a custom desktop size or enable GPU acceleration, pass the Selkies env vars like `MAX_RESOLUTION`, `DRINODE`, or `PIXELFLUX_WAYLAND` when running the container.
