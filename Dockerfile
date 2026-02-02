@@ -40,10 +40,11 @@ RUN set -eux; \
     COMICRACK_URL=$(curl -fsSL https://api.github.com/repos/maforget/ComicRackCE/releases/latest \
         | jq -r '.assets[] | select(.browser_download_url | test("ComicRackCE_v[0-9]+\\.[0-9]+\\.[0-9]+\\.zip$")) | .browser_download_url' | head -n1); \
     curl -fsSL "$COMICRACK_URL" -o /tmp/comicrack.zip; \
-    python3 - <<'PY'\nimport zipfile\nwith zipfile.ZipFile('/tmp/comicrack.zip') as z:\n    z.extractall('/opt/comicrack')\nPY\n    rm -f /tmp/comicrack.zip
+    python3 -c "import zipfile; zipfile.ZipFile('/tmp/comicrack.zip').extractall('/opt/comicrack')"; \
+    rm -f /tmp/comicrack.zip
 
 COPY root/ /
 COPY ressources/start.sh /opt/scripts/start.sh
 RUN chmod +x /opt/scripts/start.sh /root/defaults/autostart
 
-EXPOSE 3000 3001 8080
+EXPOSE 3000 3001
