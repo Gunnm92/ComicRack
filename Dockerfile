@@ -6,10 +6,14 @@ ENV HOME=/config \
     PIXELFLUX_WAYLAND=true \
     WAYLAND_DISPLAY=wayland-1 \
     DISPLAY=:1 \
-    GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0 \
-    DEBIAN_FRONTEND=noninteractive
+    GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0
 
-RUN pacman -Syu --noconfirm && \
+RUN pacman-key --init && \
+    pacman-key --populate archlinux && \
+    for repo in community multilib; do \
+        grep -q "^\[$repo\]" /etc/pacman.conf || printf "\n[%s]\nInclude = /etc/pacman.d/mirrorlist\n" "$repo" >> /etc/pacman.conf; \
+    done && \
+    pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
         curl wget jq unzip tar cabextract \
         python \
