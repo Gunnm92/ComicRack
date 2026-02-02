@@ -3,13 +3,10 @@ FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie
 ENV HOME=/config \
     WINEPREFIX=/config/comicrack/wineprefix \
     WINEARCH=win32 \
-    PROTON_HOME=/opt/proton-ge \
     PIXELFLUX_WAYLAND=true \
     WAYLAND_DISPLAY=wayland-1 \
     DISPLAY=:1 \
-    GST_PLUGIN_SYSTEM_PATH_1_0=/opt/proton-ge/dist/lib/gstreamer-1.0:/opt/proton-ge/dist/lib64/gstreamer-1.0 \
-    PATH=/opt/proton-ge/dist/bin:/opt/proton-ge/dist/bin32:$PATH \
-    LD_LIBRARY_PATH=/opt/proton-ge/dist/lib64:/opt/proton-ge/dist/lib:/opt/proton-ge/dist/lib64/wine:/opt/proton-ge/dist/lib/wine:$LD_LIBRARY_PATH \
+    GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0 \
     DEBIAN_FRONTEND=noninteractive
 
 RUN dpkg --add-architecture i386 && \
@@ -33,12 +30,7 @@ RUN dpkg --add-architecture i386 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
-    mkdir -p /opt/proton-ge /opt/comicrack /opt/scripts; \
-    PROTON_URL=$(curl -fsSL https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest \
-        | jq -r '.assets[] | select(.browser_download_url | endswith(".tar.gz")) | .browser_download_url' | head -n1); \
-    curl -fsSL "$PROTON_URL" | tar -xzf - -C /opt/proton-ge --strip-components=1
-
-RUN set -eux; \
+    mkdir -p /opt/comicrack /opt/scripts; \
     COMICRACK_URL=$(curl -fsSL https://api.github.com/repos/maforget/ComicRackCE/releases/latest \
         | jq -r '.assets[] | select(.browser_download_url | test("ComicRackCE_v[0-9]+\\.[0-9]+\\.[0-9]+\\.zip$")) | .browser_download_url' | head -n1); \
     curl -fsSL "$COMICRACK_URL" -o /tmp/comicrack.zip; \
