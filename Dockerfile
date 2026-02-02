@@ -18,14 +18,13 @@ RUN dpkg --add-architecture i386 && \
     apt-get install -y --no-install-recommends \
         apt-transport-https gnupg ca-certificates \
         curl wget jq unzip tar cabextract \
-        python3 python3-distutils \
+        python3 \
         winehq-stable \
         libfaudio0 pulseaudio libpulse0 \
         gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
         gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
         gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-pulseaudio \
         gstreamer1.0-alsa \
-        gamescope \
         libgl1 libglx-mesa0 libvulkan1 mesa-vulkan-drivers \
         dbus-x11 x11-apps x11-utils x11-xserver-utils \
         xdg-utils rsync && \
