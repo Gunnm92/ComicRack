@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie
+FROM ghcr.io/linuxserver/baseimage-selkies:arch
 
 ENV HOME=/config \
     WINEPREFIX=/config/comicrack/wineprefix \
@@ -9,30 +9,19 @@ ENV HOME=/config \
     GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0 \
     DEBIAN_FRONTEND=noninteractive
 
-RUN dpkg --add-architecture i386 && \
-    mkdir -p /etc/apt/keyrings && \
-    printf '%s\n' "deb http://deb.debian.org/debian trixie main contrib" \
-        "deb http://deb.debian.org/debian trixie-updates main contrib" \
-        "deb http://security.debian.org/debian-security trixie-security main contrib" \
-        > /etc/apt/sources.list && \
-    curl -fsSL https://dl.winehq.org/wine-builds/winehq.key | tee /etc/apt/keyrings/winehq-archive.key >/dev/null && \
-    curl -fsSL https://dl.winehq.org/wine-builds/debian/dists/trixie/winehq-trixie.sources -o /etc/apt/sources.list.d/winehq.sources && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        apt-transport-https gnupg ca-certificates \
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
         curl wget jq unzip tar cabextract \
-        python3 \
-        winehq-stable \
-        libfaudio0 pulseaudio libpulse0 \
-        gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-        gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-        gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-pulseaudio \
-        gstreamer1.0-alsa \
-        libgl1 libglx-mesa0 libvulkan1 mesa-vulkan-drivers \
-        dbus-x11 x11-apps x11-utils x11-xserver-utils \
-        xdg-utils rsync \
+        python \
+        wine \
+        lib32-libpulse libpulse \
+        gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
+        gst-libav gst-plugins-pulseaudio gst-plugins-alsa \
+        lib32-mesa libgl mesa lib32-vulkan-icd-loader vulkan-icd-loader \
+        dbus-x11 x11-apps xorg-xset xdg-utils rsync \
         gamescope && \
-    rm -rf /var/lib/apt/lists/*
+    pacman -Scc --noconfirm && \
+    rm -rf /var/cache/pacman/pkg/*
 
 RUN set -eux; \
     mkdir -p /opt/comicrack /opt/scripts; \
