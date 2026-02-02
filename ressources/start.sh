@@ -4,9 +4,11 @@ set -euo pipefail
 WINEPREFIX=${WINEPREFIX:-/config/comicrack/wineprefix}
 WINEARCH=${WINEARCH:-win32}
 PROTON_HOME=${PROTON_HOME:-/opt/proton-ge}
+PIXELFLUX_WAYLAND=${PIXELFLUX_WAYLAND:-false}
 DISPLAY=${DISPLAY:-:1}
+WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}
 
-export WINEPREFIX WINEARCH PROTON_HOME DISPLAY
+export WINEPREFIX WINEARCH PROTON_HOME DISPLAY PIXELFLUX_WAYLAND WAYLAND_DISPLAY
 export GST_PLUGIN_SYSTEM_PATH_1_0=${GST_PLUGIN_SYSTEM_PATH_1_0:-$PROTON_HOME/dist/lib/gstreamer-1.0:$PROTON_HOME/dist/lib64/gstreamer-1.0}
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-$PROTON_HOME/dist/lib64:$PROTON_HOME/dist/lib:$PROTON_HOME/dist/lib64/wine:$PROTON_HOME/dist/lib/wine:$LD_LIBRARY_PATH}
 export PATH=${PATH:-$PROTON_HOME/dist/bin:$PROTON_HOME/dist/bin32:$PATH}
@@ -50,17 +52,32 @@ if [ ! -f "$WINEPREFIX/system.reg" ]; then
 fi
 
 wait_for_x=0
-for i in {1..30}; do
-  if xdpyinfo >/dev/null 2>&1; then
-    wait_for_x=1
-    break
+WAYLAND_RUNTIME=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+WAYLAND_SOCKET="$WAYLAND_RUNTIME/$WAYLAND_DISPLAY"
+if [ "$PIXELFLUX_WAYLAND" = "true" ]; then
+  for i in {1..30}; do
+    if [ -S "$WAYLAND_SOCKET" ]; then
+      wait_for_x=1
+      break
+    fi
+    echo "[start] waiting for Wayland display $WAYLAND_DISPLAY (attempt $i/30)..."
+    sleep 1
+  done
+  if [ "$wait_for_x" -eq 0 ]; then
+    echo "[start] warning: Wayland display $WAYLAND_DISPLAY still unavailable after 30s"
   fi
-  echo "[start] waiting for X server (attempt $i/30)..."
-  sleep 1
-done
-
-if [ "$wait_for_x" -eq 0 ]; then
-  echo "[start] warning: X server still unavailable after 30s"
+else
+  for i in {1..30}; do
+    if xdpyinfo >/dev/null 2>&1; then
+      wait_for_x=1
+      break
+    fi
+    echo "[start] waiting for X server (attempt $i/30)..."
+    sleep 1
+  done
+  if [ "$wait_for_x" -eq 0 ]; then
+    echo "[start] warning: X server still unavailable after 30s"
+  fi
 fi
 
 printf "[start] launching gamescope %s -- %s %s\n" "${GAME_CMD_ARGS[*]}" "$COMIC_CMD" "${COMIC_ARGS_ARRAY[*]}"
