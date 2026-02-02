@@ -45,7 +45,7 @@ RUN set -eux; \
     rm -f /tmp/comicrack.zip
 
 COPY root/ /
-COPY Docker/start.sh /opt/scripts/start.sh
+COPY ressources/start.sh /opt/scripts/start.sh
 RUN chmod +x /opt/scripts/start.sh /root/defaults/autostart
 
 EXPOSE 3000 3001 8080
