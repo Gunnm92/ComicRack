@@ -1,0 +1,5 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/config/extensions/continue.continue-0.0.412-linux-x64"
+    ]
+}
