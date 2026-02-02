@@ -11,7 +11,13 @@ export GST_PLUGIN_SYSTEM_PATH_1_0=${GST_PLUGIN_SYSTEM_PATH_1_0:-$PROTON_HOME/dis
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-$PROTON_HOME/dist/lib64:$PROTON_HOME/dist/lib:$PROTON_HOME/dist/lib64/wine:$PROTON_HOME/dist/lib/wine:$LD_LIBRARY_PATH}
 export PATH=${PATH:-$PROTON_HOME/dist/bin:$PROTON_HOME/dist/bin32:$PATH}
 
-COMIC_CMD=${COMIC_CMD:-$PROTON_HOME/dist/bin/wine}
+if [ -x "$PROTON_HOME/dist/bin/wine" ]; then
+  COMIC_CMD=${COMIC_CMD:-$PROTON_HOME/dist/bin/wine}
+  WINEBOOT_CMD=${WINEBOOT_CMD:-$PROTON_HOME/dist/bin/wineboot}
+else
+  COMIC_CMD=${COMIC_CMD:-$(command -v wine || true)}
+  WINEBOOT_CMD=${WINEBOOT_CMD:-$(command -v wineboot || true)}
+fi
 COMIC_ARGS=${COMIC_ARGS:-/opt/comicrack/ComicRack.exe}
 read -r -a COMIC_ARGS_ARRAY <<< "$COMIC_ARGS"
 
@@ -36,7 +42,11 @@ fi
 mkdir -p "$WINEPREFIX"
 
 if [ ! -f "$WINEPREFIX/system.reg" ]; then
-  "$PROTON_HOME/dist/bin/wineboot" --init
+  if [ -n "$WINEBOOT_CMD" ]; then
+    "$WINEBOOT_CMD" --init
+  else
+    echo "[start] warning: wineboot missing" >&2
+  fi
 fi
 
 wait_for_x=0
