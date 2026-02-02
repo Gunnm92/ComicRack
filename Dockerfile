@@ -11,11 +11,10 @@ ENV HOME=/config \
 
 RUN dpkg --add-architecture i386 && \
     mkdir -p /etc/apt/keyrings && \
-    cat <<'EOF' > /etc/apt/sources.list
-deb http://deb.debian.org/debian trixie main contrib
-deb http://deb.debian.org/debian trixie-updates main contrib
-deb http://security.debian.org/debian-security trixie-security main contrib
-EOF && \
+    printf '%s\n' "deb http://deb.debian.org/debian trixie main contrib" \
+        "deb http://deb.debian.org/debian trixie-updates main contrib" \
+        "deb http://security.debian.org/debian-security trixie-security main contrib" \
+        > /etc/apt/sources.list && \
     curl -fsSL https://dl.winehq.org/wine-builds/winehq.key | tee /etc/apt/keyrings/winehq-archive.key >/dev/null && \
     curl -fsSL https://dl.winehq.org/wine-builds/debian/dists/trixie/winehq-trixie.sources -o /etc/apt/sources.list.d/winehq.sources && \
     apt-get update && \
