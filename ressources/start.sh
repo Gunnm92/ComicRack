@@ -3,23 +3,15 @@ set -euo pipefail
 
 WINEPREFIX=${WINEPREFIX:-/config/comicrack/wineprefix}
 WINEARCH=${WINEARCH:-win32}
-PROTON_HOME=${PROTON_HOME:-/opt/proton-ge}
 PIXELFLUX_WAYLAND=${PIXELFLUX_WAYLAND:-false}
 DISPLAY=${DISPLAY:-:1}
 WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}
 
-export WINEPREFIX WINEARCH PROTON_HOME DISPLAY PIXELFLUX_WAYLAND WAYLAND_DISPLAY
-export GST_PLUGIN_SYSTEM_PATH_1_0=${GST_PLUGIN_SYSTEM_PATH_1_0:-$PROTON_HOME/dist/lib/gstreamer-1.0:$PROTON_HOME/dist/lib64/gstreamer-1.0}
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-$PROTON_HOME/dist/lib64:$PROTON_HOME/dist/lib:$PROTON_HOME/dist/lib64/wine:$PROTON_HOME/dist/lib/wine:$LD_LIBRARY_PATH}
-export PATH=${PATH:-$PROTON_HOME/dist/bin:$PROTON_HOME/dist/bin32:$PATH}
+export WINEPREFIX WINEARCH DISPLAY PIXELFLUX_WAYLAND WAYLAND_DISPLAY
+export GST_PLUGIN_SYSTEM_PATH_1_0=${GST_PLUGIN_SYSTEM_PATH_1_0:-/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0}
 
-if [ -x "$PROTON_HOME/dist/bin/wine" ]; then
-  COMIC_CMD=${COMIC_CMD:-$PROTON_HOME/dist/bin/wine}
-  WINEBOOT_CMD=${WINEBOOT_CMD:-$PROTON_HOME/dist/bin/wineboot}
-else
-  COMIC_CMD=${COMIC_CMD:-$(command -v wine || true)}
-  WINEBOOT_CMD=${WINEBOOT_CMD:-$(command -v wineboot || true)}
-fi
+COMIC_CMD=${COMIC_CMD:-/usr/bin/wine}
+WINEBOOT_CMD=${WINEBOOT_CMD:-/usr/bin/wineboot}
 COMIC_ARGS=${COMIC_ARGS:-/opt/comicrack/ComicRack.exe}
 read -r -a COMIC_ARGS_ARRAY <<< "$COMIC_ARGS"
 
