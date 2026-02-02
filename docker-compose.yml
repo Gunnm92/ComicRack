@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  comicrack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: comicrack-selkies
+    image: comicrack-selkies
+    ports:
+      - "5700:3000"   # Selkies HTTP
+      - "5701:3001"   # Selkies HTTPS
+    volumes:
+      - ./ressources:/config
+    environment:
+      - PASSWORD=changeme
+      - CUSTOM_PORT=3000
+      - CUSTOM_HTTPS_PORT=3001
+    restart: unless-stopped

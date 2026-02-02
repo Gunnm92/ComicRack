@@ -12,15 +12,15 @@ docker build -f Docker/Dockerfile -t comicrack-selkies .
 
 ## Run
 
-Selkies exposes a small web control plane on port 3000 by default and an HTTPS endpoint on 3001. Run the container and map your desired ports:
+Selkies exposes ports 3000 (HTTP) and 3001 (HTTPS) by default. The repo now provides a `docker-compose.yml` that builds the image and maps them to `5700`/`5701` on your host to avoid conflicts with other services:
 
 ```bash
-docker run --rm -p 3000:3000 -p 3001:3001 -v ~/comicrack:/config comicrack-selkies
+docker-compose up --build
 ```
 
-- Access the remote desktop (with ComicRack) at `http://localhost:3000` (default `CUSTOM_PORT`) or `https://localhost:3001`.
-- Set `PASSWORD`, `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, and related Selkies env variables to lock down who can connect (see the upstream README for the full list).
-- The Wine prefix lives under `/config/comicrack/wineprefix`, so mounting `/config` keeps your database, scripts, and prefix between restarts.
+- Browse to `http://localhost:5700` or `https://localhost:5701` to connect to ComicRack through the Selkies/VNC web UI.
+- The `docker-compose.yml` mounts `./ressources` into `/config`, so your Wine prefix (`/config/comicrack/wineprefix`) and ComicRack data persist across restarts; change the host path if you store your library elsewhere.
+- Customize access with the `PASSWORD`, `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, and other Selkies environment variables shown in the compose file to lock the UI down or share different URLs.
 
 -## Behavior
 
