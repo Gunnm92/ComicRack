@@ -40,8 +40,7 @@ RUN set -eux; \
     COMICRACK_URL=$(curl -fsSL https://api.github.com/repos/maforget/ComicRackCE/releases/latest \
         | jq -r '.assets[] | select(.browser_download_url | test("ComicRackCE_v[0-9]+\\.[0-9]+\\.[0-9]+\\.zip$")) | .browser_download_url' | head -n1); \
     curl -fsSL "$COMICRACK_URL" -o /tmp/comicrack.zip; \
-    unzip -q /tmp/comicrack.zip -d /opt/comicrack; \
-    rm -f /tmp/comicrack.zip
+    python3 - <<'PY'\nimport zipfile\nwith zipfile.ZipFile('/tmp/comicrack.zip') as z:\n    z.extractall('/opt/comicrack')\nPY\n    rm -f /tmp/comicrack.zip
 
 COPY root/ /
 COPY ressources/start.sh /opt/scripts/start.sh
