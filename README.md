@@ -12,15 +12,15 @@ docker build -f Docker/Dockerfile -t comicrack-selkies .
 
 ## Run
 
-Selkies exposes ports 3000 (HTTP) and 3001 (HTTPS) by default. The repo now provides a `docker-compose.yml` that builds the image and maps them to `5700`/`5701` on your host to avoid conflicts with other services:
+Selkies exposes ports 3000 (HTTP) and 3001 (HTTPS) by default. The repo now provides a `docker-compose.yml` that builds the image, maps those ports to `5700`/`5701` on your host, and can optionally set a password if you need HTTP basic auth:
 
 ```bash
 docker-compose up --build
 ```
 
 - Browse to `http://localhost:5700` or `https://localhost:5701` to connect to ComicRack through the Selkies/VNC web UI.
-- The `docker-compose.yml` mounts `./ressources` into `/config`, so your Wine prefix (`/config/comicrack/wineprefix`) and ComicRack data persist across restarts; change the host path if you store your library elsewhere.
-- Adjust the `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, or other Selkies environment variables inside the compose file (or pass your own via `docker compose run`) if you need custom URLs or extra controls.
+- The compose file no longer mounts any host directory, so the entire Selkies `/config` tree is ephemeral by default; mount a directory yourself with `-v ~/comicrack:/config` (or edit the compose) if you want the Wine prefix/persistent data to survive restarts.
+- Set `PASSWORD` in the compose file (or via `docker compose run -e PASSWORD=...`) only if you need HTTP authentication; leaving it unset lets Selkies use its default `abc/abc` credentials or operate password-free depending on upstream defaults.
 
 -## Behavior
 

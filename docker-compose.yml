@@ -10,6 +10,4 @@ services:
     ports:
       - "5700:3000"   # Selkies HTTP
       - "5701:3001"   # Selkies HTTPS
-    volumes:
-      - ./ressources:/config
     restart: unless-stopped
