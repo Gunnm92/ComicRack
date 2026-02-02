@@ -39,4 +39,19 @@ if [ ! -f "$WINEPREFIX/system.reg" ]; then
   "$PROTON_HOME/dist/bin/wineboot" --init
 fi
 
+wait_for_x=0
+for i in {1..30}; do
+  if xdpyinfo >/dev/null 2>&1; then
+    wait_for_x=1
+    break
+  fi
+  echo "[start] waiting for X server (attempt $i/30)..."
+  sleep 1
+done
+
+if [ "$wait_for_x" -eq 0 ]; then
+  echo "[start] warning: X server still unavailable after 30s"
+fi
+
+printf "[start] launching gamescope %s -- %s %s\n" "${GAME_CMD_ARGS[*]}" "$COMIC_CMD" "${COMIC_ARGS_ARRAY[*]}"
 exec gamescope "${GAME_CMD_ARGS[@]}" -- "$COMIC_CMD" "${COMIC_ARGS_ARRAY[@]}"
