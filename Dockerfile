@@ -43,7 +43,7 @@ RUN set -eux; \
     python3 -c "import zipfile; zipfile.ZipFile('/tmp/comicrack.zip').extractall('/opt/comicrack')"; \
     rm -f /tmp/comicrack.zip
 
-COPY root/ /
+COPY root/ /root/
 COPY ressources/start.sh /opt/scripts/start.sh
 RUN chmod +x /opt/scripts/start.sh /root/defaults/autostart
 
