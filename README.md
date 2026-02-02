@@ -20,7 +20,7 @@ docker-compose up --build
 
 - Browse to `http://localhost:5700` or `https://localhost:5701` to connect to ComicRack through the Selkies/VNC web UI.
 - The `docker-compose.yml` mounts `./ressources` into `/config`, so your Wine prefix (`/config/comicrack/wineprefix`) and ComicRack data persist across restarts; change the host path if you store your library elsewhere.
-- Customize access with the `PASSWORD`, `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, and other Selkies environment variables shown in the compose file to lock the UI down or share different URLs.
+- Adjust the `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, or other Selkies environment variables inside the compose file (or pass your own via `docker compose run`) if you need custom URLs or extra controls.
 
 -## Behavior
 

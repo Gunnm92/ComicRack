@@ -12,8 +12,4 @@ services:
       - "5701:3001"   # Selkies HTTPS
     volumes:
       - ./ressources:/config
-    environment:
-      - PASSWORD=changeme
-      - CUSTOM_PORT=3000
-      - CUSTOM_HTTPS_PORT=3001
     restart: unless-stopped
