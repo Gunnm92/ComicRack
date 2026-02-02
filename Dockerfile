@@ -26,7 +26,8 @@ RUN dpkg --add-architecture i386 && \
         gstreamer1.0-alsa \
         libgl1 libglx-mesa0 libvulkan1 mesa-vulkan-drivers \
         dbus-x11 x11-apps x11-utils x11-xserver-utils \
-        xdg-utils rsync && \
+        xdg-utils rsync \
+        gamescope && \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \

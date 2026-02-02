@@ -16,6 +16,12 @@ WINEBOOT_CMD=${WINEBOOT_CMD:-/usr/bin/wineboot}
 COMIC_ARGS=${COMIC_ARGS:-/opt/comicrack/ComicRack.exe}
 read -r -a COMIC_ARGS_ARRAY <<< "$COMIC_ARGS"
 
+GAMESCOPE_CMD=${GAMESCOPE_CMD:-$(command -v gamescope || true)}
+if [ -z "$GAMESCOPE_CMD" ]; then
+  echo "[start] error: gamescope binary not available" >&2
+  exit 1
+fi
+
 GAMESCOPE_WIDTH=${GAMESCOPE_WIDTH:-1920}
 GAMESCOPE_HEIGHT=${GAMESCOPE_HEIGHT:-1080}
 GAMESCOPE_SCALE=${GAMESCOPE_SCALE:-1.0}
@@ -73,4 +79,4 @@ else
 fi
 
 printf "[start] launching gamescope %s -- %s %s\n" "${GAME_CMD_ARGS[*]}" "$COMIC_CMD" "${COMIC_ARGS_ARRAY[*]}"
-exec gamescope "${GAME_CMD_ARGS[@]}" -- "$COMIC_CMD" "${COMIC_ARGS_ARRAY[@]}"
+exec "$GAMESCOPE_CMD" "${GAME_CMD_ARGS[@]}" -- "$COMIC_CMD" "${COMIC_ARGS_ARRAY[@]}"

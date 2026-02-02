@@ -2,7 +2,7 @@
 
 This build now uses the LinuxServer [Selkies base image](https://github.com/linuxserver/docker-baseimage-selkies) (Debian Trixie flavor) to provide a modern Kasm-style WebRTC desktop instead of the old noVNC stack. Selkies already wires pixelflux/pcmflux, PulseAudio, gamescope, and an Openbox session behind a single HTTP/WebSocket gateway, so the container simply installs Wine from WineHQ and launches ComicRack inside that runtime while Selkies handles the browser stream and authentication.
 
-The image downloads the ComicRack Community Edition v0.9.182 ZIP (published December 19, 2025) at build time, installs Wine/GStreamer support from WineHQ, and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Wine can reach the system-provided codec modules. Gamescope is installed as the compositor, so only ComicRack’s window is rendered, scaled, and streamed within the Selkies session. The gamescope command can be tuned via the `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN`, and `GAMESCOPE_EXTRA_ARGS` environment variables before launching the container.
+The image downloads the ComicRack Community Edition v0.9.182 ZIP (published December 19, 2025) at build time, installs Wine/GStreamer support from WineHQ, and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Wine can reach the system-provided codec modules. `gamescope` is installed from Debian so only ComicRack’s window is rendered, scaled, and streamed within the Selkies session. The gamescope command can be tuned via the `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN`, and `GAMESCOPE_EXTRA_ARGS` environment variables before launching the container.
 
 ## Build
 
