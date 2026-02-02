@@ -10,10 +10,8 @@ ENV HOME=/config \
 
 RUN pacman-key --init && \
     pacman-key --populate archlinux && \
-    for repo in extra community multilib; do \
-        sed -i \"s/^#\\[${repo}\\]/[${repo}]/\" /etc/pacman.conf; \
-        sed -i \"s/^#Include = \\/etc\\/pacman.d\\/mirrorlist/Include = \\/etc\\/pacman.d\\/mirrorlist/\" /etc/pacman.conf; \
-    done && \
+    sed -i 's/^#\\[\\(extra\\|community\\|multilib\\)\\]/[\\1]/' /etc/pacman.conf && \
+    sed -i 's/^#Include = \\/etc\\/pacman.d\\/mirrorlist/Include = \\/etc\\/pacman.d\\/mirrorlist/' /etc/pacman.conf && \
     pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
         curl wget jq unzip tar cabextract \
