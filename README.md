@@ -2,7 +2,7 @@
 
 This build now uses the LinuxServer [Selkies base image](https://github.com/linuxserver/docker-baseimage-selkies) (Debian Trixie flavor) to provide a modern Kasm-style WebRTC desktop instead of the old noVNC stack. Selkies already wires pixelflux/pcmflux, PulseAudio, and an Openbox session behind a single HTTP/WebSocket gateway, so the container only needs to start ComicRack via Proton GE while the Selkies runtime handles the browser stream and authentication.
 
-The image downloads GE-Proton10-29 (released January 24, 2026, with the latest DXVK/vkd3d fixes) and the ComicRack Community Edition v0.9.182 ZIP (published December 19, 2025) at build time, installs WineGStreamer support, and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Proton can reach both its own codec plugins and the system-provided GStreamer modules.
+The image downloads GE-Proton10-29 (released January 24, 2026, with the latest DXVK/vkd3d fixes) and the ComicRack Community Edition v0.9.182 ZIP (published December 19, 2025) at build time, installs Wine/GStreamer support, and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Proton can reach both its own codec plugins and the system-provided GStreamer modules. Gamescope is installed as the compositor, so only ComicRack’s window is rendered, scaled, and streamed within the Selkies session. The gamescope command can be tuned via the `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN`, and `GAMESCOPE_EXTRA_ARGS` environment variables before launching the container.
 
 ## Build
 
@@ -22,9 +22,10 @@ docker run --rm -p 3000:3000 -p 3001:3001 -v ~/comicrack:/config comicrack-selki
 - Set `PASSWORD`, `CUSTOM_PORT`, `CUSTOM_HTTPS_PORT`, and related Selkies env variables to lock down who can connect (see the upstream README for the full list).
 - The Wine prefix lives under `/config/comicrack/wineprefix`, so mounting `/config` keeps your database, scripts, and prefix between restarts.
 
-## Behavior
+-## Behavior
 
-- `root/defaults/autostart` simply executes `/opt/scripts/start.sh`, which initializes the Proton Wine prefix once (`wineboot`) and then launches ComicRack CE via `Proton/dist/bin/wine`.
+- `root/defaults/autostart` simply executes `/opt/scripts/start.sh`, which initializes the Proton Wine prefix once (`wineboot`) and then launches ComicRack CE wrapped by `gamescope` (so only that window is rendered/encoded within the Selkies stream).
+- Set `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN` (0/1), or `GAMESCOPE_EXTRA_ARGS` to tune the gamescope surface, and override `COMIC_CMD`/`COMIC_ARGS` if you want to run a helper script before starting the executable.
 - GStreamer 1.0 plugins are installed (base/aux/bad/ugly/libav/pulseaudio) so any codecs invoked by ComicRack through Proton will resolve via `GST_PLUGIN_SYSTEM_PATH_1_0`.
 - If you need to pin to a different Proton or ComicRack release, download the desired tarball/ZIP outside the build and override `PROTON_HOME` or the comic archive in a derived Dockerfile.
 
