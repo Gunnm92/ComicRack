@@ -10,6 +10,6 @@ services:
       - "5701:3001"   # Selkies HTTPS
     environment:
       - PIXELFLUX_WAYLAND=true
-    environment:
-      - PIXELFLUX_WAYLAND=true
+      - SELKIES_MANUAL_WIDTH=1920
+      - SELKIES_MANUAL_HEIGHT=1080
     restart: unless-stopped
