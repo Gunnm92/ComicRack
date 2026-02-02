@@ -12,4 +12,6 @@ services:
       - "5701:3001"   # Selkies HTTPS
     environment:
       - PIXELFLUX_WAYLAND=true
+    environment:
+      - PIXELFLUX_WAYLAND=true
     restart: unless-stopped

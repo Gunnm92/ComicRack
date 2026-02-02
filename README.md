@@ -19,6 +19,7 @@ docker-compose up --build
 ```
 
 - Browse to `http://localhost:5700` or `https://localhost:5701` to connect to ComicRack through the Selkies/VNC web UI.
+- Change the capture resolution by setting the `SELKIES_MANUAL_WIDTH`, `SELKIES_MANUAL_HEIGHT`, or `MAX_RESOLUTION` env vars in the compose file (or via `docker compose run -e ...`). The `GAMESCOPE_WIDTH`/`GAMESCOPE_HEIGHT`/`GAMESCOPE_SCALE` variables already control how gamescope shapes ComicRack inside the Wayland session.
 - The compose file no longer mounts any host directory, so the entire Selkies `/config` tree is ephemeral by default; mount a directory yourself with `-v ~/comicrack:/config` (or edit the compose) if you want the Wine prefix/persistent data to survive restarts.
 - Set `PASSWORD` in the compose file (or via `docker compose run -e PASSWORD=...`) only if you need HTTP authentication; leaving it unset lets Selkies use its default `abc/abc` credentials or operate password-free depending on upstream defaults.
 - The compose file also enables `PIXELFLUX_WAYLAND`, so Selkies boots into its Wayland compositor; `ressources/start.sh` waits for the Wayland socket before launching `gamescope` so the streamed session only shows ComicRack. 
