@@ -25,6 +25,7 @@ RUN dpkg --add-architecture i386 && \
         gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
         gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-pulseaudio \
         gstreamer1.0-alsa \
+        gamescope \
         libgl1 libgl1-mesa-glx libglx-mesa0 libvulkan1 mesa-vulkan-drivers \
         dbus-x11 x11-apps x11-utils x11-xserver-utils \
         xdg-utils rsync && \
