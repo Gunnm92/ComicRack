@@ -12,7 +12,7 @@ docker build -f Docker/Dockerfile -t comicrack-selkies .
 
 ## Run
 
-Selkies exposes ports 3000 (HTTP) and 3001 (HTTPS) by default. The repo now provides a `docker-compose.yml` that builds the image, maps those ports to `5700`/`5701` on your host, and can optionally set a password if you need HTTP basic auth:
+Selkies exposes ports 3000 (HTTP) and 3001 (HTTPS) by default and can now run in Wayland mode. The provided `docker-compose.yml` builds the image, enables `PIXELFLUX_WAYLAND`, and maps Selkies’ ports to `5700`/`5701` on your host:
 
 ```bash
 docker-compose up --build
@@ -21,8 +21,9 @@ docker-compose up --build
 - Browse to `http://localhost:5700` or `https://localhost:5701` to connect to ComicRack through the Selkies/VNC web UI.
 - The compose file no longer mounts any host directory, so the entire Selkies `/config` tree is ephemeral by default; mount a directory yourself with `-v ~/comicrack:/config` (or edit the compose) if you want the Wine prefix/persistent data to survive restarts.
 - Set `PASSWORD` in the compose file (or via `docker compose run -e PASSWORD=...`) only if you need HTTP authentication; leaving it unset lets Selkies use its default `abc/abc` credentials or operate password-free depending on upstream defaults.
+- The compose file also enables `PIXELFLUX_WAYLAND`, so Selkies boots into its Wayland compositor; `ressources/start.sh` waits for the Wayland socket before launching `gamescope` so the streamed session only shows ComicRack. 
 
--## Behavior
+## Behavior
 
 - `root/defaults/autostart` simply executes `/opt/scripts/start.sh`, which initializes the Proton Wine prefix once (`wineboot`) and then launches ComicRack CE wrapped by `gamescope` (so only that window is rendered/encoded within the Selkies stream).
 - Set `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN` (0/1), or `GAMESCOPE_EXTRA_ARGS` to tune the gamescope surface, and override `COMIC_CMD`/`COMIC_ARGS` if you want to run a helper script before starting the executable.
