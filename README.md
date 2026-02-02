@@ -1,38 +1,34 @@
-# ComicRack Docker on LinuxServer Selkies
+# ComicRack Docker sur LinuxServer Selkies
 
-This build now uses the LinuxServer [Selkies base image](https://github.com/linuxserver/docker-baseimage-selkies) (Arch flavor) so the container boots the Arch-based Wayland compositor instead of the old noVNC stack. Selkies already wires pixelflux/pcmflux, PulseAudio, gamescope, and an Openbox session behind a single HTTP/WebSocket gateway, so the Dockerfile simply installs Wine/gstreamer/gamescope from `pacman` and launches ComicRack while Selkies handles the browser stream and authentication.
+Le conteneur est maintenant construit sur l’image `linuxserver/baseimage-selkies:arch`, ce qui fournit directement le compositeur Wayland Arch rapide avec Selkies (pixelflux/pcmflux, PulseAudio, etc.) au lieu de l’ancien empilement noVNC. La Dockerfile installe Wine, GStreamer et `gamescope` à l’aide des dépôts officiels `pacman` (y compris `community`/`multilib`) et télécharge la dernière release de ComicRack Community Edition au moment du build. `gamescope` rend uniquement la fenêtre de ComicRack pour que Selkies puisse s’en charger proprement dans le tunnel WebSocket/HTTP.
 
-The image downloads the ComicRack Community Edition v0.9.182 ZIP (published December 19, 2025) at build time, installs Wine/GStreamer/gamescope packages from Arch’s pacman repositories, and exports `GST_PLUGIN_SYSTEM_PATH_1_0` so Wine can reach the system codec modules. `gamescope` renders only ComicRack’s window, which Selkies then scales and streams. The gamescope command can be tuned via the `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN`, and `GAMESCOPE_EXTRA_ARGS` environment variables before launching the container.
-
-## Build
+## Compilation
 
 ```bash
-docker build -f Docker/Dockerfile -t comicrack-selkies .
+docker build -t comicrack-selkies .
 ```
 
-## Run
+## Exécution
 
-Selkies exposes ports 3000 (HTTP) and 3001 (HTTPS) by default and can now run in Wayland mode. The provided `docker-compose.yml` builds the image, enables `PIXELFLUX_WAYLAND`, and maps Selkies’ ports to `5700`/`5701` on your host:
+Le fichier `docker-compose.yml` construit l’image, active le mode Wayland (`PIXELFLUX_WAYLAND=true`), contrôle la résolution du bureau et expose les ports Selkies standard.
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
-- Browse to `http://localhost:5700` or `https://localhost:5701` to connect to ComicRack through the Selkies/VNC web UI.
-- The compose file already sets `SELKIES_MANUAL_WIDTH=1920`/`SELKIES_MANUAL_HEIGHT=1080` so the Selkies Wayland compositor targets a sensible 1080p canvas; adjust these or use `MAX_RESOLUTION` if you need a different desktop size before launching `gamescope` (see the `environment` block in `docker-compose.yml`).
-- Change the capture resolution by setting the `SELKIES_MANUAL_WIDTH`, `SELKIES_MANUAL_HEIGHT`, or `MAX_RESOLUTION` env vars in the compose file (or via `docker compose run -e ...`). The `GAMESCOPE_WIDTH`/`GAMESCOPE_HEIGHT`/`GAMESCOPE_SCALE` variables already control how gamescope shapes ComicRack inside the Wayland session.
-- The compose file no longer mounts any host directory, so the entire Selkies `/config` tree is ephemeral by default; mount a directory yourself with `-v ~/comicrack:/config` (or edit the compose) if you want the Wine prefix/persistent data to survive restarts.
-- Set `PASSWORD` in the compose file (or via `docker compose run -e PASSWORD=...`) only if you need HTTP authentication; leaving it unset lets Selkies use its default `abc/abc` credentials or operate password-free depending on upstream defaults.
-- The compose file also enables `PIXELFLUX_WAYLAND`, so Selkies boots into its Wayland compositor; `ressources/start.sh` waits for the Wayland socket before launching `gamescope` so the streamed session only shows ComicRack. 
+- Le navigateur se connecte via `http://localhost:5700` ou `https://localhost:5701` au tunnel WebSocket fourni par Selkies.
+- L’environnement `SELKIES_MANUAL_WIDTH`/`SELKIES_MANUAL_HEIGHT` définit la résolution cible (ici 1920x1080) pour la session Wayland, tandis que `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE` et `GAMESCOPE_FULLSCREEN` ajustent la surface renderisée et affichée par `gamescope`.
+- Aucune archive/volume hôte n’est montée par défaut : le dossier `/config` reste éphémère. Montez votre propre volume (par exemple `-v ~/comicrack:/config`) si vous souhaitez conserver le préfixe Wine ou les paramètres entre les redémarrages.
+- L’authentification reste optionnelle : ne renseignez `PASSWORD` que si vous avez besoin de sécuriser l’interface HTTP (sinon, Selkies applique `abc/abc` ou fonctionne sans mote de passe selon les valeurs par défaut).
+- Selkies attend le socket Wayland avant de lancer `gamescope` ; le script `ressources/start.sh` démarre `wineboot` (si nécessaire) puis exécute ComicRack via `gamescope` afin que seule son interface soit encodée.
 
-## Behavior
+## Description
 
-- `root/defaults/autostart` simply executes `/opt/scripts/start.sh`, which initializes the Proton Wine prefix once (`wineboot`) and then launches ComicRack CE wrapped by `gamescope` (so only that window is rendered/encoded within the Selkies stream).
-- Set `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE`, `GAMESCOPE_FULLSCREEN` (0/1), or `GAMESCOPE_EXTRA_ARGS` to tune the gamescope surface, and override `COMIC_CMD`/`COMIC_ARGS` if you want to run a helper script before starting the executable.
-- GStreamer 1.0 plugins are installed (base/aux/bad/ugly/libav/pulseaudio) so any codecs invoked by ComicRack through Proton will resolve via `GST_PLUGIN_SYSTEM_PATH_1_0`.
-- If you need to pin to a different Proton or ComicRack release, download the desired tarball/ZIP outside the build and override `PROTON_HOME` or the comic archive in a derived Dockerfile.
+- `ressources/start.sh` exporte les variables de résolution, prépare le préfixe Wine et fixe `XDG_RUNTIME_DIR` à `/config/.XDG` avant d’attendre la disponibilité du socket Wayland. Le lancement de `gamescope` se fait avec `GAMESCOPE_FULLSCREEN=1` par défaut et accepte les arguments supplémentaires via `GAMESCOPE_EXTRA_ARGS`.
+- Les plugins GStreamer (`base`, `good`, `bad`, `ugly`, `libav`, `pulseaudio`, `alsa`) sont installés pour que Wine puisse atteindre les codecs GPU/audio dont ComicRack a besoin.
+- La résolution peut être changée à chaud en réexportant `SELKIES_MANUAL_*` ou `GAMESCOPE_*` dans `docker compose run` ou en ajustant le fichier de composition. Les variables `COMIC_CMD` et `COMIC_ARGS` peuvent aussi être surchargées si vous souhaitez lancer une étape préalable à `ComicRack.exe`.
 
-## Troubleshooting
+## Résolution de problèmes
 
-- Selkies already runs a compositor, so there is no separate VNC server​—the browser session is routed through pixelflux. Do not try to run the old noVNC port 8080.
-- To expose a custom desktop size or enable GPU acceleration, pass the Selkies env vars like `MAX_RESOLUTION`, `DRINODE`, or `PIXELFLUX_WAYLAND` when running the container.
+- Selkies tourne déjà son propre compositeur : inutile de chercher un port noVNC (comme 8080) ou d’essayer de démarrer un affichage X11 traditionnel.
+- Si vous avez besoin de GPU natif, exposez la variable `DRINODE` et adaptez `MAX_RESOLUTION`; sinon, la capture software (x264 via Pixman) fonctionne dans la machine virtuelle Arch.

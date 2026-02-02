@@ -9,7 +9,13 @@ services:
       - "5700:3000"   # Selkies HTTP
       - "5701:3001"   # Selkies HTTPS
     environment:
+      # Run Selkies in Wayland mode and hint at a 1080p canvas.
       - PIXELFLUX_WAYLAND=true
       - SELKIES_MANUAL_WIDTH=1920
       - SELKIES_MANUAL_HEIGHT=1080
+      # Control the gamescope surface that renders ComicRack.
+      - GAMESCOPE_WIDTH=1920
+      - GAMESCOPE_HEIGHT=1080
+      - GAMESCOPE_SCALE=1.0
+      - GAMESCOPE_FULLSCREEN=1
     restart: unless-stopped
