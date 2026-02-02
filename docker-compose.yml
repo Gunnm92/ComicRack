@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: comicrack-selkies
+    container_name: comicrack-web
     image: comicrack-selkies
     ports:
       - "5700:3000"   # Selkies HTTP
