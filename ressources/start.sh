@@ -2,7 +2,7 @@
 set -euo pipefail
 
 HOME=${HOME:-/config}
-WINEPREFIX=${WINEPREFIX:-$HOME/.wineprefixes/comicrack}
+WINEPREFIX=${WINEPREFIX:-$HOME/.wine}
 WINEARCH=${WINEARCH:-win32}
 PIXELFLUX_WAYLAND=${PIXELFLUX_WAYLAND:-false}
 DISPLAY=${DISPLAY:-:1}
