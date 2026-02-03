@@ -34,3 +34,5 @@ docker compose up --build
 
 - Selkies tourne déjà son propre compositeur : inutile de chercher un port noVNC (comme 8080) ou d’essayer de démarrer un affichage X11 traditionnel.
 - Si vous avez besoin de GPU natif, exposez la variable `DRINODE` et adaptez `MAX_RESOLUTION`; sinon, la capture software (x264 via Pixman) fonctionne dans la machine virtuelle Arch.
+- Si vous lancez `wine ComicRack.exe` “à la main” dans un `docker exec`, vous verrez souvent `XDG_RUNTIME_DIR is invalid or not set` / `nodrv_CreateWindow`. Utilisez plutôt `/opt/scripts/start.sh` (autostart Selkies) ou exportez au minimum `XDG_RUNTIME_DIR=/config/.XDG` et `WAYLAND_DISPLAY=wayland-1`.
+- L’image installe `wine-mono` (et `wine-gecko`) pour éviter l’erreur `Wine Mono is not installed` au démarrage de ComicRack.
