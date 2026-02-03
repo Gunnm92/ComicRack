@@ -8,19 +8,11 @@ ENV HOME=/config \
     DISPLAY=:1 \
     GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0
 
-RUN set -eux; \
-    pacman-key --init; \
-    pacman-key --populate archlinux; \
-    \
-    # Arch: the old [community] repo was merged into [extra]. Some images still ship a pacman.conf with [community]. \
-    # If [community] is present, pacman sync fails with 404s, so we remove only that block. \
-    perl -0777 -i -pe 's/\\n\\[community\\]\\n(?:[^\\n]*\\n)*?(?=\\n\\[|\\z)//s' /etc/pacman.conf; \
-    \
-    pacman -Syyu --noconfirm; \
-    \
-    # Keep this minimal: only what we need to run ComicRack in a Wayland session. \
-    pacman -S --noconfirm --needed gamescope wine ca-certificates curl jq unzip; \
-    pacman -Scc --noconfirm; \
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm --needed \
+        ca-certificates curl wget jq unzip tar cabextract \
+        python wine gamescope && \
+    pacman -Scc --noconfirm && \
     rm -rf /var/cache/pacman/pkg/*
 
 RUN set -eux; \
