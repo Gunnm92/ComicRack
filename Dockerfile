@@ -12,7 +12,11 @@ RUN pacman-key --init && \
     pacman-key --populate archlinux && \
     for repo in extra community multilib; do \
         if ! grep -q \"^\\[$repo\\]\" /etc/pacman.conf; then \
-            printf \"\\n[%s]\\nInclude = /etc/pacman.d/mirrorlist\\n\" \"$repo\" >> /etc/pacman.conf; \
+            printf \"\\n\" >> /etc/pacman.conf; \
+            cat <<'EOF' >> /etc/pacman.conf
+[$repo]
+Include = /etc/pacman.d/mirrorlist
+EOF
         fi; \
     done && \
     pacman -Syyu --noconfirm && \
