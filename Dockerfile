@@ -10,9 +10,18 @@ ENV HOME=/config \
 
 RUN pacman-key --init && \
     pacman-key --populate archlinux && \
-    # Only enable multilib repo lines; do not touch other Include directives (can break [options]). \
-    sed -i '/^#\\[multilib\\]$/,/^#Include = \\/etc\\/pacman.d\\/mirrorlist$/ s/^#//' /etc/pacman.conf && \
+    # Arch has no "community" repo anymore; only enable multilib (needed for lib32-* packages). \
+    python3 -c 'import pathlib; p=pathlib.Path("/etc/pacman.conf"); lines=p.read_text().splitlines(True); out=[]; in_m=False; found=False; \
+for l in lines: \
+  s=l.strip(); \
+  if s in ("[multilib]","#[multilib]"): in_m=True; found=True; out.append("[multilib]\\n"); continue; \
+  if in_m and s.startswith("[") and s not in ("[multilib]","#[multilib]"): in_m=False; \
+  if in_m and l.lstrip().startswith("#Include = /etc/pacman.d/mirrorlist"): out.append("Include = /etc/pacman.d/mirrorlist\\n"); continue; \
+  out.append(l); \
+if not found: out.append("\\n[multilib]\\nInclude = /etc/pacman.d/mirrorlist\\n"); \
+p.write_text("".join(out))' && \
     pacman -Syyu --noconfirm && \
+    pacman -Sl multilib >/dev/null 2>&1 && \
     pacman -S --noconfirm --needed \
         ca-certificates curl wget jq unzip tar cabextract \
         python \
