@@ -19,7 +19,7 @@ content = config.read_text()
 content = re.sub(r"^#\\[(extra|community|multilib)\\]", r"[\\1]", content, flags=re.M)
 content = re.sub(r"^#Include = /etc/pacman.d/mirrorlist", "Include = /etc/pacman.d/mirrorlist", content, flags=re.M)
 config.write_text(content)
-PY \
+PY && \
     pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
         curl wget jq unzip tar cabextract \
