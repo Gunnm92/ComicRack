@@ -8,32 +8,25 @@ ENV HOME=/config \
     DISPLAY=:1 \
     GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0
 
-RUN pacman-key --init && \
-    pacman-key --populate archlinux && \
-    # Arch has no "community" repo anymore; only enable multilib (needed for lib32-* packages). \
-    python3 -c 'import pathlib; p=pathlib.Path("/etc/pacman.conf"); lines=p.read_text().splitlines(True); out=[]; in_m=False; found=False; \
-for l in lines: \
-  s=l.strip(); \
-  if s in ("[multilib]","#[multilib]"): in_m=True; found=True; out.append("[multilib]\\n"); continue; \
-  if in_m and s.startswith("[") and s not in ("[multilib]","#[multilib]"): in_m=False; \
-  if in_m and l.lstrip().startswith("#Include = /etc/pacman.d/mirrorlist"): out.append("Include = /etc/pacman.d/mirrorlist\\n"); continue; \
-  out.append(l); \
-if not found: out.append("\\n[multilib]\\nInclude = /etc/pacman.d/mirrorlist\\n"); \
-p.write_text("".join(out))' && \
-    pacman -Syyu --noconfirm && \
-    pacman -Sl multilib >/dev/null 2>&1 && \
-    pacman -S --noconfirm --needed \
-        ca-certificates curl wget jq unzip tar cabextract \
-        python \
-        wine \
-        libpulse lib32-libpulse \
-        gstreamer \
-        gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
-        gst-libav \
-        libglvnd mesa lib32-mesa vulkan-icd-loader lib32-vulkan-icd-loader \
-        xorg-xset xdg-utils rsync \
-        gamescope && \
-    pacman -Scc --noconfirm && \
+RUN set -eux; \
+    pacman-key --init; \
+    pacman-key --populate archlinux; \
+    \
+    # Arch: community repo was merged into extra; some images still ship a pacman.conf with [community]. \
+    # If [community] is present, pacman sync can fail with 404s. Remove it safely. \
+    perl -0777 -i -pe 's/\\n\\[community\\]\\n(?:[^\\n]*\\n)*?(?=\\n\\[|\\z)//s' /etc/pacman.conf; \
+    \
+    # Enable multilib (optional: only matters on x86_64). \
+    sed -i '/^#\\[multilib\\]$/,/^#Include = \\/etc\\/pacman.d\\/mirrorlist$/ s/^#//' /etc/pacman.conf || true; \
+    \
+    pacman -Syyu --noconfirm; \
+    \
+    pkgs="ca-certificates curl wget jq unzip tar cabextract python wine libpulse gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav libglvnd mesa vulkan-icd-loader xorg-xset xdg-utils rsync gamescope"; \
+    if pacman -Sl multilib >/dev/null 2>&1; then \
+        pkgs="$pkgs lib32-libpulse lib32-mesa lib32-vulkan-icd-loader"; \
+    fi; \
+    pacman -S --noconfirm --needed $pkgs; \
+    pacman -Scc --noconfirm; \
     rm -rf /var/cache/pacman/pkg/*
 
 RUN set -eux; \
