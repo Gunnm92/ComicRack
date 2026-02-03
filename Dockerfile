@@ -13,7 +13,7 @@ RUN pacman -Syu --noconfirm && \
     pacman -S --noconfirm --needed \
         ca-certificates curl wget jq unzip tar cabextract \
         python \
-        wine wine-mono wine-gecko \
+        wine wine-mono wine-gecko winetricks \
         vulkan-icd-loader \
         gamescope && \
     pacman -Scc --noconfirm && \
