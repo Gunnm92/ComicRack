@@ -10,32 +10,17 @@ ENV HOME=/config \
 
 RUN pacman-key --init && \
     pacman-key --populate archlinux && \
-    cat >/etc/pacman.conf <<'EOF' && \
-[options]
-SigLevel = Required DatabaseOptional
-Include = /etc/pacman.d/mirrorlist
-
-[core]
-Include = /etc/pacman.d/mirrorlist
-
-[extra]
-Include = /etc/pacman.d/mirrorlist
-
-[community]
-Include = /etc/pacman.d/mirrorlist
-
-[multilib]
-Include = /etc/pacman.d/mirrorlist
-EOF
+    python3 -c 'from pathlib import Path; import re; p=Path("/etc/pacman.conf"); s=p.read_text(); s=re.sub(r"^#\\[(multilib)\\]$", r"[\\1]", s, flags=re.M); s=re.sub(r"^#Include = /etc/pacman.d/mirrorlist$", "Include = /etc/pacman.d/mirrorlist", s, flags=re.M); p.write_text(s)' && \
     pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
-        curl wget jq unzip tar cabextract \
+        ca-certificates curl wget jq unzip tar cabextract \
         python \
         wine \
-        lib32-libpulse libpulse \
+        libpulse lib32-libpulse \
+        gstreamer \
         gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
         gst-libav \
-        lib32-mesa libgl mesa lib32-vulkan-icd-loader vulkan-icd-loader \
+        libglvnd mesa lib32-mesa vulkan-icd-loader lib32-vulkan-icd-loader \
         xorg-xset xdg-utils rsync \
         gamescope && \
     pacman -Scc --noconfirm && \
