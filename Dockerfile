@@ -6,12 +6,16 @@ ENV HOME=/config \
     PIXELFLUX_WAYLAND=true \
     WAYLAND_DISPLAY=wayland-1 \
     DISPLAY=:1 \
+    XDG_RUNTIME_DIR=/config/.XDG \
     GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0
 
 RUN pacman -Syu --noconfirm && \
     pacman -S --noconfirm --needed \
         ca-certificates curl wget jq unzip tar cabextract \
-        python wine gamescope && \
+        python \
+        wine wine-mono wine-gecko \
+        vulkan-icd-loader \
+        gamescope && \
     pacman -Scc --noconfirm && \
     rm -rf /var/cache/pacman/pkg/*
 
