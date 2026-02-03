@@ -10,9 +10,10 @@ ENV HOME=/config \
 
 RUN pacman-key --init && \
     pacman-key --populate archlinux && \
-    python3 -c 'from pathlib import Path; import re; p=Path("/etc/pacman.conf"); s=p.read_text(); s=re.sub(r"^#\\[(multilib)\\]$", r"[\\1]", s, flags=re.M); s=re.sub(r"^#Include = /etc/pacman.d/mirrorlist$", "Include = /etc/pacman.d/mirrorlist", s, flags=re.M); p.write_text(s)' && \
+    # Only enable multilib repo lines; do not touch other Include directives (can break [options]). \
+    sed -i '/^#\\[multilib\\]$/,/^#Include = \\/etc\\/pacman.d\\/mirrorlist$/ s/^#//' /etc/pacman.conf && \
     pacman -Syyu --noconfirm && \
-    pacman -S --noconfirm \
+    pacman -S --noconfirm --needed \
         ca-certificates curl wget jq unzip tar cabextract \
         python \
         wine \
