@@ -12,20 +12,14 @@ RUN set -eux; \
     pacman-key --init; \
     pacman-key --populate archlinux; \
     \
-    # Arch: community repo was merged into extra; some images still ship a pacman.conf with [community]. \
-    # If [community] is present, pacman sync can fail with 404s. Remove it safely. \
+    # Arch: the old [community] repo was merged into [extra]. Some images still ship a pacman.conf with [community]. \
+    # If [community] is present, pacman sync fails with 404s, so we remove only that block. \
     perl -0777 -i -pe 's/\\n\\[community\\]\\n(?:[^\\n]*\\n)*?(?=\\n\\[|\\z)//s' /etc/pacman.conf; \
-    \
-    # Enable multilib (optional: only matters on x86_64). \
-    sed -i '/^#\\[multilib\\]$/,/^#Include = \\/etc\\/pacman.d\\/mirrorlist$/ s/^#//' /etc/pacman.conf || true; \
     \
     pacman -Syyu --noconfirm; \
     \
-    pkgs="ca-certificates curl wget jq unzip tar cabextract python wine libpulse gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav libglvnd mesa vulkan-icd-loader xorg-xset xdg-utils rsync gamescope"; \
-    if pacman -Sl multilib >/dev/null 2>&1; then \
-        pkgs="$pkgs lib32-libpulse lib32-mesa lib32-vulkan-icd-loader"; \
-    fi; \
-    pacman -S --noconfirm --needed $pkgs; \
+    # Keep this minimal: only what we need to run ComicRack in a Wayland session. \
+    pacman -S --noconfirm --needed gamescope wine ca-certificates curl jq unzip; \
     pacman -Scc --noconfirm; \
     rm -rf /var/cache/pacman/pkg/*
 
