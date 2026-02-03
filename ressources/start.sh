@@ -7,6 +7,8 @@ PIXELFLUX_WAYLAND=${PIXELFLUX_WAYLAND:-false}
 DISPLAY=${DISPLAY:-:1}
 WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}
 XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/config/.XDG}
+PUID=${PUID:-911}
+PGID=${PGID:-911}
 
 export WINEPREFIX WINEARCH DISPLAY PIXELFLUX_WAYLAND WAYLAND_DISPLAY XDG_RUNTIME_DIR
 export GST_PLUGIN_SYSTEM_PATH_1_0=${GST_PLUGIN_SYSTEM_PATH_1_0:-/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0}
@@ -41,6 +43,9 @@ if [ -n "$GAMESCOPE_EXTRA_ARGS" ]; then
 fi
 
 mkdir -p "$WINEPREFIX" "$XDG_RUNTIME_DIR"
+if [ "$(id -u)" -eq 0 ]; then
+  chown -R "${PUID}:${PGID}" "$WINEPREFIX" "$XDG_RUNTIME_DIR"
+fi
 
 if [ ! -f "$WINEPREFIX/system.reg" ]; then
   if [ -n "$WINEBOOT_CMD" ]; then
