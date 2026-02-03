@@ -10,11 +10,23 @@ ENV HOME=/config \
 
 RUN pacman-key --init && \
     pacman-key --populate archlinux && \
-    for repo in extra community multilib; do \
-        if ! grep -q \"^\\[$repo\\]\" /etc/pacman.conf; then \
-            printf '\n[%s]\nInclude = /etc/pacman.d/mirrorlist\n' \"$repo\" >> /etc/pacman.conf; \
-        fi; \
-    done && \
+    cat >/etc/pacman.conf <<'EOF' && \
+[options]
+SigLevel = Required DatabaseOptional
+Include = /etc/pacman.d/mirrorlist
+
+[core]
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+Include = /etc/pacman.d/mirrorlist
+
+[community]
+Include = /etc/pacman.d/mirrorlist
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+EOF
     pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
         curl wget jq unzip tar cabextract \
@@ -22,9 +34,9 @@ RUN pacman-key --init && \
         wine \
         lib32-libpulse libpulse \
         gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
-        gst-libav gst-plugins-pulseaudio gst-plugins-alsa \
+        gst-libav \
         lib32-mesa libgl mesa lib32-vulkan-icd-loader vulkan-icd-loader \
-        dbus-x11 x11-apps xorg-xset xdg-utils rsync \
+        xorg-xset xdg-utils rsync \
         gamescope && \
     pacman -Scc --noconfirm && \
     rm -rf /var/cache/pacman/pkg/*
