@@ -24,7 +24,7 @@ docker compose up --build
 
 ## Description
 
-- `ressources/start.sh` exporte les variables de résolution, prépare le préfixe Wine (et lui applique `PUID`/`PGID` par défaut 911) et fixe `XDG_RUNTIME_DIR` à `/config/.XDG` avant d’attendre la disponibilité du socket Wayland. Le lancement de `gamescope` se fait avec `GAMESCOPE_FULLSCREEN=1` par défaut et accepte les arguments supplémentaires via `GAMESCOPE_EXTRA_ARGS`.
+- `ressources/start.sh` exporte les variables de résolution, prépare le préfixe Wine (et lui applique `PUID`/`PGID` par défaut 1000) et fixe `XDG_RUNTIME_DIR` à `/config/.XDG` avant d’attendre la disponibilité du socket Wayland. Le lancement de `gamescope` se fait avec `GAMESCOPE_FULLSCREEN=1` par défaut et accepte les arguments supplémentaires via `GAMESCOPE_EXTRA_ARGS`.
 - Les plugins GStreamer (`base`, `good`, `bad`, `ugly`, `libav`, `pulseaudio`, `alsa`) sont installés pour que Wine puisse atteindre les codecs GPU/audio dont ComicRack a besoin.
 - La résolution peut être changée à chaud en réexportant `SELKIES_MANUAL_*` ou `GAMESCOPE_*` dans `docker compose run` ou en ajustant le fichier de composition. Les variables `COMIC_CMD` et `COMIC_ARGS` peuvent aussi être surchargées si vous souhaitez lancer une étape préalable à `ComicRack.exe`.
 
