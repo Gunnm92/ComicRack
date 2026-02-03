@@ -1,7 +1,7 @@
 FROM ghcr.io/linuxserver/baseimage-selkies:arch
 
 ENV HOME=/config \
-    WINEPREFIX=/config/comicrack/wineprefix \
+    WINEPREFIX=/config/.wineprefixes/comicrack \
     WINEARCH=win32 \
     PIXELFLUX_WAYLAND=true \
     WAYLAND_DISPLAY=wayland-1 \
