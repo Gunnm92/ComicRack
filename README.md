@@ -19,12 +19,14 @@ docker compose up --build
 - Le navigateur se connecte via `http://localhost:5700` ou `https://localhost:5701` au tunnel WebSocket fourni par Selkies.
 - L’environnement `SELKIES_MANUAL_WIDTH`/`SELKIES_MANUAL_HEIGHT` définit la résolution cible (ici 1920x1080) pour la session Wayland, tandis que `GAMESCOPE_WIDTH`, `GAMESCOPE_HEIGHT`, `GAMESCOPE_SCALE` et `GAMESCOPE_FULLSCREEN` ajustent la surface renderisée et affichée par `gamescope`.
 - Aucune archive/volume hôte n’est montée par défaut : le dossier `/config` reste éphémère. Montez votre propre volume (par exemple `-v ~/comicrack:/config`) si vous souhaitez conserver le préfixe Wine ou les paramètres entre les redémarrages.
+- Conformément aux conventions LinuxServer.io, vous pouvez définir `PUID`/`PGID` (ex: `1000/1000`) pour que les fichiers créés sous `/config` appartiennent à votre utilisateur hôte quand vous montez un volume.
 - L’authentification reste optionnelle : ne renseignez `PASSWORD` que si vous avez besoin de sécuriser l’interface HTTP (sinon, Selkies applique `abc/abc` ou fonctionne sans mote de passe selon les valeurs par défaut).
 - Selkies attend le socket Wayland avant de lancer `gamescope` ; le script `ressources/start.sh` démarre `wineboot` (si nécessaire) puis exécute ComicRack via `gamescope` afin que seule son interface soit encodée.
 
 ## Description
 
-- `ressources/start.sh` exporte les variables de résolution, prépare le préfixe Wine (et lui applique `PUID`/`PGID` par défaut 1000) et fixe `XDG_RUNTIME_DIR` à `/config/.XDG` avant d’attendre la disponibilité du socket Wayland. Le lancement de `gamescope` se fait avec `GAMESCOPE_FULLSCREEN=1` par défaut et accepte les arguments supplémentaires via `GAMESCOPE_EXTRA_ARGS`.
+- `root/defaults/autostart` suit le format documenté par Selkies: il contient simplement la commande à lancer (ici `/opt/scripts/start.sh`).
+- `ressources/start.sh` exporte les variables de résolution, prépare le préfixe Wine sous `$HOME` (donc `/config/.wineprefixes/comicrack`) et lui applique `PUID`/`PGID` (par défaut 1000) quand il est exécuté en root. Il fixe aussi `XDG_RUNTIME_DIR` à `/config/.XDG` avant d’attendre la disponibilité du socket Wayland. Le lancement de `gamescope` se fait avec `GAMESCOPE_FULLSCREEN=1` par défaut et accepte les arguments supplémentaires via `GAMESCOPE_EXTRA_ARGS`.
 - Les plugins GStreamer (`base`, `good`, `bad`, `ugly`, `libav`, `pulseaudio`, `alsa`) sont installés pour que Wine puisse atteindre les codecs GPU/audio dont ComicRack a besoin.
 - La résolution peut être changée à chaud en réexportant `SELKIES_MANUAL_*` ou `GAMESCOPE_*` dans `docker compose run` ou en ajustant le fichier de composition. Les variables `COMIC_CMD` et `COMIC_ARGS` peuvent aussi être surchargées si vous souhaitez lancer une étape préalable à `ComicRack.exe`.
 

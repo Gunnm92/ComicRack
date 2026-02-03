@@ -13,6 +13,9 @@ services:
       - PIXELFLUX_WAYLAND=true
       - SELKIES_MANUAL_WIDTH=1920
       - SELKIES_MANUAL_HEIGHT=1080
+      # Standard LSIO permissions.
+      - PUID=1000
+      - PGID=1000
       # Control the gamescope surface that renders ComicRack.
       - GAMESCOPE_WIDTH=1920
       - GAMESCOPE_HEIGHT=1080
