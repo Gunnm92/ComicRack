@@ -23,4 +23,10 @@ services:
       # Standard LSIO permissions.
       - PUID=1000
       - PGID=1000
+    volumes:
+      # Préfixe Wine persistant — évite de re-run winetricks à chaque redémarrage
+      - comicrack-config:/config
     restart: unless-stopped
+
+volumes:
+  comicrack-config:
