@@ -1,39 +1,31 @@
 <labwc_config>
 
   <core>
-    <decoration>server</decoration>
+    <!-- pas de décoration par défaut — plein écran sans bordure -->
+    <decoration>client</decoration>
     <gap>0</gap>
   </core>
 
   <theme>
     <titlebar>
-      <layout>icon:iconify,max,close</layout>
-      <showTitle>yes</showTitle>
+      <showTitle>no</showTitle>
     </titlebar>
-    <cornerRadius>4</cornerRadius>
+    <cornerRadius>0</cornerRadius>
   </theme>
 
   <keyboard>
     <default />
-    <keybind key="A-F4"><action name="Close" /></keybind>
   </keyboard>
 
   <mouse>
     <default />
-    <context name="Root">
-      <mousebind button="Right" action="Press"><action name="ShowMenu" menu="root-menu" /></mousebind>
-    </context>
   </mouse>
 
   <windowRules>
-    <!-- Tout maximisé par défaut -->
-    <windowRule identifier="*" serverDecoration="yes">
+    <!-- Tout : pas de décoration server, maximisé -->
+    <windowRule identifier="*" serverDecoration="no">
       <action name="Maximize" />
     </windowRule>
-    <!-- Wine explorer (bureau Wine) : pas de décoration, plein écran -->
-    <windowRule identifier="explorer.exe" serverDecoration="no" />
-    <!-- Fenêtres Wine popup/dialog : décoration mais pas forcément maximisées -->
-    <windowRule identifier="wine" serverDecoration="yes" />
   </windowRules>
 
 </labwc_config>

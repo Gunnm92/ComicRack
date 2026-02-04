@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Mode Wayland — pas de compositor intermédiaire.
-# pixelflux (Selkies) expose wayland-1 comme compositor wlroots.
-# On lance XWayland dessus : il se connecte comme client Wayland
-# et expose un display X (:1) pour Wine.
+# Mode Wayland — labwc comme compositor sur pixelflux.
+# pixelflux expose wayland-1, labwc se connecte dessus comme compositor nested.
+# XWayland est lancé automatiquement par labwc quand Wine se connecte.
 
 ulimit -c 0
 
@@ -10,23 +9,11 @@ export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/config/.XDG}
 export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}
 export XCURSOR_THEME=${XCURSOR_THEME:-whiteglass}
 export XCURSOR_SIZE=${XCURSOR_SIZE:-24}
-export DISPLAY=:1
+# Ne pas exporter DISPLAY ici — XWayland sera lancé auto par labwc
+# et start.sh détecte le display via /tmp/.X11-unix/
 
-# XWayland en background — se connecte à pixelflux et expose DISPLAY=:1
-# -rootless : fenêtres gérées par le compositor
-# -noreset  : ne pas mourir après le dernier client
-Xwayland :1 -rootless -noreset &
-XWPID=$!
+# Lance start.sh en arrière-plan — il détecte le display XWayland auto
+/opt/scripts/start.sh &
 
-# Attendre que le display X soit prêt avant de lancer Wine
-for i in {1..30}; do
-  if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
-    echo "[startwm] XWayland $DISPLAY is up"
-    break
-  fi
-  echo "[startwm] waiting for XWayland $DISPLAY (attempt $i/30)..."
-  sleep 1
-done
-
-# Lance start.sh — une seule fois, après que XWayland soit prêt
-exec /opt/scripts/start.sh
+# labwc comme compositor — lit /defaults/labwc.xml
+exec labwc -c /defaults/labwc.xml

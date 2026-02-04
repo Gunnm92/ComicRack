@@ -25,17 +25,37 @@ COMIC_DARK=${COMIC_DARK:-0}          # 1 pour activer le mode dark (-dark)
 
 # ---------------------------------------------------------------------------
 # Attendre que le display X soit disponible
-# X11 : Xvfb via svc-xorg   |   Wayland : XWayland sur pixelflux (wayland-0)
-# Dans les deux cas DISPLAY est défini et xdpyinfo suffit.
+# X11 : Xvfb via svc-xorg (DISPLAY=:1)
+# Wayland : XWayland lancé auto par labwc — le display n'est pas connu à
+#   l'avance. On scanne /tmp/.X11-unix/ pour trouver le premier socket X.
 # ---------------------------------------------------------------------------
-for i in {1..30}; do
-  if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
-    echo "[start] X server $DISPLAY is up"
-    break
-  fi
-  echo "[start] waiting for X server $DISPLAY (attempt $i/30)..."
-  sleep 1
-done
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+  # Mode Wayland — détecter le display XWayland automatiquement
+  for i in {1..30}; do
+    for sock in /tmp/.X11-unix/X*; do
+      [ -S "$sock" ] || continue
+      NUM="${sock##*/X}"
+      if xdpyinfo -display ":${NUM}" >/dev/null 2>&1; then
+        DISPLAY=":${NUM}"
+        export DISPLAY
+        echo "[start] XWayland found on $DISPLAY"
+        break 2
+      fi
+    done
+    echo "[start] waiting for XWayland socket (attempt $i/30)..."
+    sleep 1
+  done
+else
+  # Mode X11 — attendre Xvfb sur DISPLAY (défaut :1)
+  for i in {1..30}; do
+    if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+      echo "[start] X server $DISPLAY is up"
+      break
+    fi
+    echo "[start] waiting for X server $DISPLAY (attempt $i/30)..."
+    sleep 1
+  done
+fi
 
 # ---------------------------------------------------------------------------
 # Préfixe Wine
