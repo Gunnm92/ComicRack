@@ -24,31 +24,18 @@ XCURSOR_THEME=${XCURSOR_THEME:-}    # Thème XCursor (optionnel)
 COMIC_DARK=${COMIC_DARK:-0}          # 1 pour activer le mode dark (-dark)
 
 # ---------------------------------------------------------------------------
-# Attendre que le serveur d'affichage soit disponible
+# Attendre que le display X soit disponible
+# X11 : Xvfb via svc-xorg   |   Wayland : XWayland sur pixelflux (wayland-0)
+# Dans les deux cas DISPLAY est défini et xdpyinfo suffit.
 # ---------------------------------------------------------------------------
-if [ -n "${WAYLAND_DISPLAY:-}" ]; then
-  # Mode Wayland — attendre le socket Wayland (créé par Selkies / pixelflux).
-  # XWayland sera lancé automatiquement par labwc quand Wine se connecte.
-  WSOCK="${XDG_RUNTIME_DIR:-/run/user/911}/${WAYLAND_DISPLAY}"
-  for i in {1..30}; do
-    if [ -e "$WSOCK" ]; then
-      echo "[start] Wayland socket $WSOCK is up"
-      break
-    fi
-    echo "[start] waiting for Wayland socket $WSOCK (attempt $i/30)..."
-    sleep 1
-  done
-else
-  # Mode X11 — attendre Xvfb (Selkies / svc-xorg)
-  for i in {1..30}; do
-    if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
-      echo "[start] X server $DISPLAY is up"
-      break
-    fi
-    echo "[start] waiting for X server $DISPLAY (attempt $i/30)..."
-    sleep 1
-  done
-fi
+for i in {1..30}; do
+  if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+    echo "[start] X server $DISPLAY is up"
+    break
+  fi
+  echo "[start] waiting for X server $DISPLAY (attempt $i/30)..."
+  sleep 1
+done
 
 # ---------------------------------------------------------------------------
 # Préfixe Wine
