@@ -1,104 +1,71 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ---------------------------------------------------------------------------
+# Variables
+# ---------------------------------------------------------------------------
 HOME=${HOME:-/config}
 WINEPREFIX=${WINEPREFIX:-$HOME/.wine}
-WINEARCH=${WINEARCH:-win32}
-PIXELFLUX_WAYLAND=${PIXELFLUX_WAYLAND:-false}
-DISPLAY=${DISPLAY:-:1}
-WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}
-XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/config/.XDG}
-PUID=${PUID:-1000}
-PGID=${PGID:-1000}
-INSTALL_WINE_MONO=${INSTALL_WINE_MONO:-1}
-# ComicRack targets .NET 4.8; install it by default via winetricks (can be disabled).
-INSTALL_WINETRICKS=${INSTALL_WINETRICKS:-1}
-WINETRICKS_PACKAGES=${WINETRICKS_PACKAGES:-dotnet48}
+WINEARCH=win64          # ComicRack CE est 64-bit
+DISPLAY=${DISPLAY:-:1}  # Xvfb lancé par Selkies svc-xorg
 
-export HOME WINEPREFIX WINEARCH DISPLAY PIXELFLUX_WAYLAND WAYLAND_DISPLAY XDG_RUNTIME_DIR
+export HOME WINEPREFIX WINEARCH DISPLAY
 export GST_PLUGIN_SYSTEM_PATH_1_0=${GST_PLUGIN_SYSTEM_PATH_1_0:-/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0}
 
-COMIC_CMD=${COMIC_CMD:-/usr/bin/wine}
-WINEBOOT_CMD=${WINEBOOT_CMD:-/usr/bin/wineboot}
+INSTALL_WINETRICKS=${INSTALL_WINETRICKS:-1}
+WINETRICKS_PACKAGES=${WINETRICKS_PACKAGES:-dotnet48}
 COMIC_ARGS=${COMIC_ARGS:-/opt/comicrack/ComicRack.exe}
-read -r -a COMIC_ARGS_ARRAY <<< "$COMIC_ARGS"
+WINE_DPI=${WINE_DPI:-150}           # DPI pour les polices Wine (96=par défaut, 150 pour 1280x720)
 
-GAMESCOPE_CMD=${GAMESCOPE_CMD:-$(command -v gamescope || true)}
-if [ -z "$GAMESCOPE_CMD" ]; then
-  echo "[start] error: gamescope binary not available" >&2
-  exit 1
-fi
-
-GAMESCOPE_WIDTH=${GAMESCOPE_WIDTH:-1920}
-GAMESCOPE_HEIGHT=${GAMESCOPE_HEIGHT:-1080}
-GAMESCOPE_SCALE=${GAMESCOPE_SCALE:-1.0}
-GAMESCOPE_FULLSCREEN=${GAMESCOPE_FULLSCREEN:-1}
-GAMESCOPE_EXTRA_ARGS=${GAMESCOPE_EXTRA_ARGS:-}
-
-GAME_CMD_ARGS=()
-if [ "$GAMESCOPE_FULLSCREEN" != "0" ]; then
-  GAME_CMD_ARGS+=(--fullscreen)
-fi
-GAME_CMD_ARGS+=(--scale "$GAMESCOPE_SCALE")
-GAME_CMD_ARGS+=(--width "$GAMESCOPE_WIDTH")
-GAME_CMD_ARGS+=(--height "$GAMESCOPE_HEIGHT")
-if [ -n "$GAMESCOPE_EXTRA_ARGS" ]; then
-  read -r -a EXTRA <<< "$GAMESCOPE_EXTRA_ARGS"
-  GAME_CMD_ARGS+=("${EXTRA[@]}")
-fi
-
-mkdir -p "$WINEPREFIX" "$XDG_RUNTIME_DIR"
-if [ "$(id -u)" -eq 0 ]; then
-  chown -R "${PUID}:${PGID}" "$WINEPREFIX" "$XDG_RUNTIME_DIR"
-fi
-
-wait_for_x=0
-WAYLAND_SOCKET="$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
-if [ "$PIXELFLUX_WAYLAND" = "true" ]; then
-  for i in {1..30}; do
-    if [ -S "$WAYLAND_SOCKET" ]; then
-      wait_for_x=1
-      break
-    fi
-    echo "[start] waiting for Wayland display $WAYLAND_DISPLAY (attempt $i/30)..."
-    sleep 1
-  done
-  if [ "$wait_for_x" -eq 0 ]; then
-    echo "[start] warning: Wayland display $WAYLAND_DISPLAY still unavailable after 30s"
+# ---------------------------------------------------------------------------
+# Attendre que X11 soit disponible (Selkies / svc-xorg)
+# ---------------------------------------------------------------------------
+for i in {1..30}; do
+  if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+    echo "[start] X server $DISPLAY is up"
+    break
   fi
-else
-  for i in {1..30}; do
-    if xdpyinfo >/dev/null 2>&1; then
-      wait_for_x=1
-      break
-    fi
-    echo "[start] waiting for X server (attempt $i/30)..."
-    sleep 1
-  done
-  if [ "$wait_for_x" -eq 0 ]; then
-    echo "[start] warning: X server still unavailable after 30s"
-  fi
-fi
+  echo "[start] waiting for X server $DISPLAY (attempt $i/30)..."
+  sleep 1
+done
+
+# ---------------------------------------------------------------------------
+# Préfixe Wine
+# ---------------------------------------------------------------------------
+mkdir -p "$WINEPREFIX"
 
 if [ ! -f "$WINEPREFIX/system.reg" ]; then
-  if [ -n "$WINEBOOT_CMD" ]; then
-    "$WINEBOOT_CMD" --init
-  else
-    echo "[start] warning: wineboot missing" >&2
-  fi
+  echo "[start] running wineboot --init"
+  /usr/bin/wineboot --init || true
 fi
 
-
-# install extra components via winetricks (default: dotnet48).
+# ---------------------------------------------------------------------------
+# Winetricks (une seule fois) — dotnet48 par défaut
+# ---------------------------------------------------------------------------
 if [ "$INSTALL_WINETRICKS" != "0" ] && [ -n "$WINETRICKS_PACKAGES" ] && command -v winetricks >/dev/null 2>&1; then
   marker="$WINEPREFIX/.winetricks_done_${WINETRICKS_PACKAGES//[^a-zA-Z0-9_.-]/_}"
   if [ ! -f "$marker" ]; then
-    echo "[start] running winetricks (one-time): $WINETRICKS_PACKAGES"
-    # Winetricks can be flaky; keep the container alive even if it fails.
+    echo "[start] running winetricks: $WINETRICKS_PACKAGES"
     winetricks -q $WINETRICKS_PACKAGES || true
     touch "$marker" || true
   fi
 fi
 
-printf "[start] launching gamescope %s -- %s %s\n" "${GAME_CMD_ARGS[*]}" "$COMIC_CMD" "${COMIC_ARGS_ARRAY[*]}"
-exec "$GAMESCOPE_CMD" "${GAME_CMD_ARGS[@]}" -- "$COMIC_CMD" "${COMIC_ARGS_ARRAY[@]}"
+# ---------------------------------------------------------------------------
+# DPI des polices Wine — évite que texte et curseur soient trop petits.
+# Appliqué après winetricks pour ne pas être écrasé par ses opérations.
+# ---------------------------------------------------------------------------
+if [ -n "$WINE_DPI" ] && [ "$WINE_DPI" != "96" ]; then
+  DPI_HEX=$(printf "%08x" "$WINE_DPI")
+  USERREG="$WINEPREFIX/user.reg"
+  if [ -f "$USERREG" ] && grep -q '"LogPixels"=dword:' "$USERREG"; then
+    echo "[start] patching Wine DPI to $WINE_DPI (0x$DPI_HEX) in user.reg"
+    sed -i "s/\"LogPixels\"=dword:[0-9a-f]\{8\}/\"LogPixels\"=dword:$DPI_HEX/" "$USERREG"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# Lance ComicRack
+# ---------------------------------------------------------------------------
+echo "[start] launching wine $COMIC_ARGS"
+exec /usr/bin/wine $COMIC_ARGS
