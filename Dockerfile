@@ -1,10 +1,12 @@
 FROM ghcr.io/linuxserver/baseimage-selkies:arch
 
-# Mode X11 : Selkies lance svc-xorg (Xvfb) + svc-de (Openbox via startwm.sh).
-# Wine se connecte sur DISPLAY=:1 comme sur une machine normale.
+# Mode Wayland : Selkies lance pixelflux (socket Wayland) + svc-de (labwc via startwm_wayland.sh).
+# Wine tourne via XWayland qui se connecte automatiquement au compositor labwc.
+# DISPLAY est gardé pour compatibilité X11 (non utilisé en Wayland).
 ENV HOME=/config \
     WINEPREFIX=/config/.wine \
     WINEARCH=win64 \
+    PIXELFLUX_WAYLAND=true \
     DISPLAY=:1 \
     GST_PLUGIN_SYSTEM_PATH_1_0=/usr/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0
 
@@ -30,6 +32,8 @@ COPY root/defaults/ /defaults/
 COPY ressources/start.sh /opt/scripts/start.sh
 RUN chmod +x /opt/scripts/start.sh \
          /defaults/autostart \
-         /defaults/startwm.sh
+         /defaults/autostart_wayland \
+         /defaults/startwm.sh \
+         /defaults/startwm_wayland.sh
 
 EXPOSE 3000 3001
