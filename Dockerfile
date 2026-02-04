@@ -13,7 +13,7 @@ RUN pacman -Syu --noconfirm && \
         ca-certificates curl wget jq unzip tar cabextract \
         python \
         wine wine-mono wine-gecko winetricks \
-        xorg-xdpyinfo && \
+        xorg-xdpyinfo xorg-xrdb xcursor-themes && \
     pacman -Scc --noconfirm && \
     rm -rf /var/cache/pacman/pkg/*
 
