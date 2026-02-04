@@ -56,12 +56,9 @@ fi
 # Appliqué après winetricks pour ne pas être écrasé par ses opérations.
 # ---------------------------------------------------------------------------
 if [ -n "$WINE_DPI" ] && [ "$WINE_DPI" != "96" ]; then
-  DPI_HEX=$(printf "%08x" "$WINE_DPI")
-  USERREG="$WINEPREFIX/user.reg"
-  if [ -f "$USERREG" ] && grep -q '"LogPixels"=dword:' "$USERREG"; then
-    echo "[start] patching Wine DPI to $WINE_DPI (0x$DPI_HEX) in user.reg"
-    sed -i "s/\"LogPixels\"=dword:[0-9a-f]\{8\}/\"LogPixels\"=dword:$DPI_HEX/" "$USERREG"
-  fi
+  echo "[start] setting Wine DPI to $WINE_DPI via registry"
+  /usr/bin/wine reg add "HKCU\\Control Panel\\Desktop" /v LogPixels /t REG_DWORD /d "$WINE_DPI" /f || true
+  /usr/bin/wine reg add "HKCU\\Control Panel\\Desktop" /v Win8DpiScaling /t REG_DWORD /d 1 /f || true
 fi
 
 # ---------------------------------------------------------------------------
