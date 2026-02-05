@@ -10,6 +10,8 @@ services:
       - "5701:3001"   # Selkies HTTPS
     volumes:
       - ./library:/library
+      - ./data:/data
+      - ./import:/import
       - comicrack-config:/config
     environment:
       # Mode Wayland — Selkies/pixelflux fournit le socket, labwc est le compositor.
@@ -26,6 +28,10 @@ services:
       - WINETRICKS_PACKAGES=dotnet48 corefonts mono gecko
       - CURSOR_PACK=1
       - CURSOR_PACK_VARIANT=default
+      - DATA_DIR=/data
+      - IMPORT_DIR=/import
+      - FIX_LIBRARY_PERMS=1
+      - WINEPREFIX=/data/wineprefix
       # Standard LSIO permissions.
       - PUID=1000
       - PGID=1000

@@ -5,7 +5,12 @@ set -euo pipefail
 # Variables
 # ---------------------------------------------------------------------------
 HOME=${HOME:-/config}
-BASE_WINEPREFIX=${WINEPREFIX:-$HOME/.wine}
+DATA_DIR=${DATA_DIR:-/data}
+IMPORT_DIR=${IMPORT_DIR:-/import}
+BASE_WINEPREFIX=${WINEPREFIX:-$DATA_DIR/wineprefix}
+if [ "$BASE_WINEPREFIX" = "$HOME/.wine" ] && [ -n "$DATA_DIR" ]; then
+  BASE_WINEPREFIX="$DATA_DIR/wineprefix"
+fi
 WINEARCH=win64          # ComicRack CE est 64-bit
 DISPLAY=${DISPLAY:-:1}  # Xvfb lancé par Selkies svc-xorg
 PUID=${PUID:-1000}
@@ -30,6 +35,7 @@ WINETRICKS_PACKAGES=${WINETRICKS_PACKAGES:-dotnet48 corefonts mono gecko}
 COMIC_ARGS=${COMIC_ARGS:-/opt/comicrack/ComicRack.exe}
 PROTON_RUN=${PROTON_RUN:-$PROTON_DIR/proton}
 COMIC_WORKDIR=${COMIC_WORKDIR:-/opt/comicrack}
+COMIC_USER=${COMIC_USER:-steamuser}
 WINE_DPI=${WINE_DPI:-150}           # DPI pour les polices Wine (96=par défaut, 150 pour 1280x720)
 CURSOR_SIZE=${CURSOR_SIZE:-200}     # Taille du curseur X11/Wine
 WINE_FONT=${WINE_FONT:-}            # Police globale Wine (ex: Arial)
@@ -38,6 +44,7 @@ COMIC_DARK=${COMIC_DARK:-1}          # 1 pour activer le mode dark (-dark)
 CURSOR_PACK=${CURSOR_PACK:-0}        # 1 pour installer un pack de curseurs Windows
 CURSOR_PACK_URL=${CURSOR_PACK_URL:-https://github.com/SullensCR/Windows-Material-Design-Cursor-V2-Dark-Hdpi-by-jepriCreations/archive/refs/heads/main.zip}
 CURSOR_PACK_VARIANT=${CURSOR_PACK_VARIANT:-default} # "default" ou "pure black"
+FIX_LIBRARY_PERMS=${FIX_LIBRARY_PERMS:-1}
 
 # ---------------------------------------------------------------------------
 # Attendre que le display X soit disponible
@@ -74,8 +81,16 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Préfixe Wine
+# Préfixe Wine / Proton + données persistantes
 # ---------------------------------------------------------------------------
+mkdir -p "$DATA_DIR"
+mkdir -p "$IMPORT_DIR"
+
+if [ "$BASE_WINEPREFIX" = "$DATA_DIR/wineprefix" ] && [ ! -e "$BASE_WINEPREFIX" ] && [ -d "$HOME/.wine" ]; then
+  echo "[start] migrating legacy prefix from $HOME/.wine to $BASE_WINEPREFIX"
+  mv "$HOME/.wine" "$BASE_WINEPREFIX" || true
+fi
+
 mkdir -p "$WINEPREFIX"
 if [ "$USE_PROTON" = "1" ]; then
   mkdir -p "$STEAM_COMPAT_DATA_PATH"
@@ -99,6 +114,28 @@ if [ ! -f "$WINEPREFIX/system.reg" ]; then
   else
     "${RUN_AS_CMD[@]}" /usr/bin/wineboot --init || true
   fi
+fi
+
+# ---------------------------------------------------------------------------
+# Permissions & mapping data/import
+# ---------------------------------------------------------------------------
+if [ "$FIX_LIBRARY_PERMS" = "1" ] && [ -d /library ] && [ "$(id -u)" -eq 0 ]; then
+  if [ ! -f /library/.permissions_done ]; then
+    chown -R "${PUID}:${PGID}" /library || true
+    touch /library/.permissions_done || true
+  fi
+fi
+
+COMIC_APPDATA="$WINEPREFIX/drive_c/users/${COMIC_USER}/AppData/Roaming/cYo/ComicRack"
+COMIC_PLUGINS_DIR="$COMIC_APPDATA/Plugins"
+COMIC_SCRIPTS_DIR="$COMIC_APPDATA/Scripts"
+mkdir -p "$COMIC_PLUGINS_DIR" "$COMIC_SCRIPTS_DIR" || true
+
+if [ -d "$IMPORT_DIR/Plugins" ]; then
+  cp -r "$IMPORT_DIR/Plugins/." "$COMIC_PLUGINS_DIR/" || true
+fi
+if [ -d "$IMPORT_DIR/Scripts" ]; then
+  cp -r "$IMPORT_DIR/Scripts/." "$COMIC_SCRIPTS_DIR/" || true
 fi
 
 # ---------------------------------------------------------------------------
