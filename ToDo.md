@@ -10,7 +10,7 @@ Branche active : `wayland` (Debian Trixie + Proton-GE + labwc)
 - [x] **Mode Wayland** — labwc comme compositor nested sur pixelflux/Selkies, XWayland auto
 - [x] **Lancement via Proton** — chemin `Z:\opt\comicrack\ComicRack.exe` (Proton résout depuis le prefix, pas le cwd)
 - [x] **Volume `/library`** — monté R/W, permissions fixées via `FIX_LIBRARY_PERMS`
-- [x] **Persistance données** — AppData ComicRack redirigé vers `/data/comicrack` (symlink). Prefix Wine dans volume `comicrack-config`
+- [x] **Persistance données** — AppData ComicRack monté directement dans le prefix via volume bind (`./data/comicrack` → `…/cYo/ComicRack Community Edition`). Wine/Proton ne suit pas les symlinks vers des volumes extérieurs, donc pas de `ln -s`. Prefix Wine dans volume `comicrack-config`
 - [x] **Volumes `/data` + `/import`** — `/data` persiste entre redémarrages, `/import/Plugins` et `/import/Scripts` copiés au boot
 - [x] **Extraction zip ComicRack** — Le zip GitHub est créé sur Windows (backslash dans les chemins). Fix dans le Dockerfile : `info.filename.replace('\\', '/')` avant extraction
 - [x] **Curseur** — `CURSOR_SIZE=32` dans compose, `XCURSOR_SIZE` exporté dans startwm_wayland.sh depuis `CURSOR_SIZE`
@@ -20,8 +20,11 @@ Branche active : `wayland` (Debian Trixie + Proton-GE + labwc)
 
 ## En cours / À tester après rebuild
 
-- [ ] **Dark mode** — `-dark` ne fonctionne pas via Proton (ComicRack se ferme immédiatement). Fonctionne en Wine natif. À résoudre : activer via `Config.xml` dans AppData (`/data/comicrack/Config.xml`) une fois ComicRack lancé au moins une fois en mode normal
 - [ ] **Langue française** — Le zip `Languages/fr.zip` existe dans `/opt/comicrack/Languages/` après le fix extraction. À tester en UI — ComicRack devrait le détacter automatiquement ou permettre de le choisir dans les paramètres
+
+## Bloqué / Limitation connue
+
+- ~~**Dark mode**~~ — **Incompatible avec Proton-GE.** Le flag `-dark` et `UseDarkMode = true` dans `ComicRack.ini` provoquent tous deux une fermeture immédiate de ComicRack CE sous Proton. Le dark mode fonctionne en mode Wine natif (`USE_PROTON=0`). Le start.sh supprime automatiquement `UseDarkMode` du ini quand `USE_PROTON=1` pour éviter le crash. `COMIC_DARK=1` dans compose n'a d'effet qu'en Wine natif.
 
 ## À faire — Haut priorité
 
@@ -43,10 +46,14 @@ docker-compose.yml
     ./import   → /import    (Plugins + Scripts à copier au boot)
     comicrack-config → /config  (prefix Wine/Proton, cache)
 
+  volumes supplémentaire:
+    ./data/comicrack → /config/.wine/pfx/…/cYo/ComicRack Community Edition
+      (volume bind direct dans le prefix — pas de symlink, Wine ne suit pas les symlinks vers des volumes extérieurs)
+
   env clés:
     PIXELFLUX_WAYLAND=true   → Selkies en mode Wayland
     USE_PROTON=1             → proton run au lieu de wine
-    COMIC_DARK=1             → flag -dark passé à ComicRack.exe
+    COMIC_DARK=1             → UseDarkMode dans ini (Wine natif uniquement, crash sous Proton)
     CURSOR_SIZE=32           → XCURSOR_SIZE (Wayland) + CursorBaseSize (Wine)
     WINE_DPI=150             → LogPixels dans le registre Wine
 
@@ -54,9 +61,9 @@ start.sh flow:
   1. Détecte XWayland (scan /tmp/.X11-unix/)
   2. Init prefix si nécessaire (wineboot via proton)
   3. Fix perms /library
-  4. Symlink AppData → /data/comicrack
-  5. Copy plugins/scripts depuis /import
+  4. Copy plugins/scripts depuis /import vers /data/comicrack/
+  5. Dark mode : UseDarkMode dans ComicRack.ini si USE_PROTON=0 ; supprimé si USE_PROTON=1
   6. Winetricks (dotnet48, skip si déjà présent)
   7. DPI, curseur, polices via registre Wine
-  8. exec proton run Z:\opt\comicrack\ComicRack.exe [-dark]
+  8. exec proton run Z:\opt\comicrack\ComicRack.exe
 ```

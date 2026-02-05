@@ -123,23 +123,11 @@ if [ "$FIX_LIBRARY_PERMS" = "1" ] && [ -d /library ] && [ "$(id -u)" -eq 0 ]; th
   fi
 fi
 
-COMIC_APPDATA="$WINEPREFIX/drive_c/users/${COMIC_USER}/AppData/Roaming/cYo/ComicRack"
 COMIC_DATA_DIR="$DATA_DIR/comicrack"
-COMIC_PLUGINS_DIR="$COMIC_APPDATA/Plugins"
-COMIC_SCRIPTS_DIR="$COMIC_APPDATA/Scripts"
 mkdir -p "$COMIC_DATA_DIR" || true
-mkdir -p "$(dirname "$COMIC_APPDATA")" || true
-
-# Redirect ComicRack AppData to /data/comicrack (persisted only for app data).
-if [ ! -L "$COMIC_APPDATA" ]; then
-  if [ -d "$COMIC_APPDATA" ] && [ "$(ls -A "$COMIC_APPDATA" 2>/dev/null | wc -l)" -gt 0 ]; then
-    cp -r "$COMIC_APPDATA/." "$COMIC_DATA_DIR/" || true
-    rm -rf "$COMIC_APPDATA" || true
-  else
-    rm -rf "$COMIC_APPDATA" || true
-  fi
-  ln -s "$COMIC_DATA_DIR" "$COMIC_APPDATA" || true
-fi
+# Le répertoire AppData est monté directement via docker-compose (volume bind).
+# Wine/Proton ne suit pas les symlinks vers des volumes extérieurs au prefix,
+# donc pas de ln -s ici — le mount Docker résout ça transparemment.
 
 COMIC_PLUGINS_DIR="$COMIC_DATA_DIR/Plugins"
 COMIC_SCRIPTS_DIR="$COMIC_DATA_DIR/Scripts"
@@ -150,6 +138,30 @@ if [ -d "$IMPORT_DIR/Plugins" ]; then
 fi
 if [ -d "$IMPORT_DIR/Scripts" ]; then
   cp -r "$IMPORT_DIR/Scripts/." "$COMIC_SCRIPTS_DIR/" || true
+fi
+
+# ---------------------------------------------------------------------------
+# Dark mode via ComicRack.ini dans AppData
+# ComicRack lit un ComicRack.ini local dans %APPDATA%\cYo\ComicRack Community Edition
+# avec les paramètres à surcharger. UseDarkMode = true équivaut à -dark.
+#
+# ATTENTION : UseDarkMode = true crashe ComicRack CE sous Proton-GE
+# (même comportement que le flag -dark). Le dark mode n'est disponible
+# qu'en mode Wine natif (USE_PROTON=0).
+# ---------------------------------------------------------------------------
+if [ "$COMIC_DARK" = "1" ] && [ "$USE_PROTON" != "1" ]; then
+  INI_PATH="$COMIC_DATA_DIR/ComicRack.ini"
+  if [ ! -f "$INI_PATH" ] || ! grep -q "UseDarkMode" "$INI_PATH" 2>/dev/null; then
+    echo "[start] enabling dark mode via ComicRack.ini"
+    echo "UseDarkMode = true" > "$INI_PATH"
+  fi
+elif [ "$USE_PROTON" = "1" ]; then
+  # Supprimer UseDarkMode s'il existe dans le ini (hérité d'une run Wine natif)
+  INI_PATH="$COMIC_DATA_DIR/ComicRack.ini"
+  if [ -f "$INI_PATH" ] && grep -q "UseDarkMode" "$INI_PATH" 2>/dev/null; then
+    echo "[start] removing UseDarkMode from ComicRack.ini (incompatible avec Proton)"
+    sed -i '/UseDarkMode/d' "$INI_PATH"
+  fi
 fi
 
 # ---------------------------------------------------------------------------

@@ -13,6 +13,10 @@ services:
       - ./data:/data
       - ./import:/import
       - comicrack-config:/config
+      # AppData ComicRack monté directement dans le prefix Proton.
+      # Wine/Proton ne suit pas les symlinks vers des volumes extérieurs,
+      # donc on monte ici plutôt que de faire un ln -s dans start.sh.
+      - ./data/comicrack:/config/.wine/pfx/drive_c/users/steamuser/AppData/Roaming/cYo/ComicRack Community Edition
     environment:
       # Mode Wayland — Selkies/pixelflux fournit le socket, labwc est le compositor.
       # Wine tourne via XWayland sur labwc. Proton-GE utilisé à la place de Wine natif.
