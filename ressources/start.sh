@@ -49,22 +49,25 @@ FIX_LIBRARY_PERMS=${FIX_LIBRARY_PERMS:-1}
 # Wayland : XWayland lancé auto par labwc — le display n'est pas connu à
 #   l'avance. On scanne /tmp/.X11-unix/ pour trouver le premier socket X.
 # ---------------------------------------------------------------------------
-if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+if [ "${PIXELFLUX_WAYLAND:-}" = "true" ] || [ -n "${WAYLAND_DISPLAY:-}" ] || [ -S "/config/.XDG/wayland-1" ] || [ -S "/config/.XDG/wayland-0" ]; then
   # Mode Wayland — détecter le display XWayland automatiquement
   for i in {1..30}; do
     for sock in /tmp/.X11-unix/X*; do
       [ -S "$sock" ] || continue
       NUM="${sock##*/X}"
-      if xdpyinfo -display ":${NUM}" >/dev/null 2>&1; then
-        DISPLAY=":${NUM}"
-        export DISPLAY
-        echo "[start] XWayland found on $DISPLAY"
-        break 2
-      fi
+      DISPLAY=":${NUM}"
+      export DISPLAY
+      echo "[start] XWayland socket found on $DISPLAY"
+      break 2
     done
     echo "[start] waiting for XWayland socket (attempt $i/30)..."
     sleep 1
   done
+  if [ -z "${DISPLAY:-}" ]; then
+    DISPLAY=":0"
+    export DISPLAY
+    echo "[start] XWayland socket not found yet; using $DISPLAY and letting XWayland spawn on demand"
+  fi
 else
   # Mode X11 — attendre Xvfb sur DISPLAY (défaut :1)
   for i in {1..30}; do
@@ -94,6 +97,7 @@ if [ "$USE_PROTON" = "1" ]; then
 fi
 RUN_AS_CMD=()
 if [ "$(id -u)" -eq 0 ]; then
+  chown -R "${PUID}:${PGID}" "$BASE_WINEPREFIX" || true
   chown -R "${PUID}:${PGID}" "$WINEPREFIX"
   if command -v s6-setuidgid >/dev/null 2>&1; then
     RUN_AS_CMD=(s6-setuidgid "${PUID}:${PGID}")
@@ -126,8 +130,8 @@ fi
 COMIC_DATA_DIR="$DATA_DIR/comicrack"
 mkdir -p "$COMIC_DATA_DIR" || true
 # Le répertoire AppData est monté directement via docker-compose (volume bind).
-# Wine/Proton ne suit pas les symlinks vers des volumes extérieurs au prefix,
-# donc pas de ln -s ici — le mount Docker résout ça transparemment.
+# On s'assure que le chemin cible existe, puis Docker monte /data/comicrack dessus.
+mkdir -p "$WINEPREFIX/drive_c/users/${COMIC_USER}/AppData/Roaming/cYo/ComicRack Community Edition" || true
 
 COMIC_PLUGINS_DIR="$COMIC_DATA_DIR/Plugins"
 COMIC_SCRIPTS_DIR="$COMIC_DATA_DIR/Scripts"
