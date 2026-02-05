@@ -34,7 +34,7 @@ WINE_DPI=${WINE_DPI:-150}           # DPI pour les polices Wine (96=par défaut,
 CURSOR_SIZE=${CURSOR_SIZE:-200}     # Taille du curseur X11/Wine
 WINE_FONT=${WINE_FONT:-}            # Police globale Wine (ex: Arial)
 XCURSOR_THEME=${XCURSOR_THEME:-}    # Thème XCursor (optionnel)
-COMIC_DARK=${COMIC_DARK:-0}          # 1 pour activer le mode dark (-dark)
+COMIC_DARK=${COMIC_DARK:-1}          # 1 pour activer le mode dark (-dark)
 CURSOR_PACK=${CURSOR_PACK:-0}        # 1 pour installer un pack de curseurs Windows
 CURSOR_PACK_URL=${CURSOR_PACK_URL:-https://github.com/SullensCR/Windows-Material-Design-Cursor-V2-Dark-Hdpi-by-jepriCreations/archive/refs/heads/main.zip}
 CURSOR_PACK_VARIANT=${CURSOR_PACK_VARIANT:-default} # "default" ou "pure black"

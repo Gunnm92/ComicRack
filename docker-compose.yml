@@ -18,7 +18,7 @@ services:
       - SELKIES_MANUAL_WIDTH=1280
       - SELKIES_MANUAL_HEIGHT=800
       - WINE_DPI=150
-      - CURSOR_SIZE=150
+      - CURSOR_SIZE=32
       - XCURSOR_THEME=default
       - WINE_FONT=Arial
       - COMIC_DARK=1
