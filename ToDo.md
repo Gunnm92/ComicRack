@@ -5,7 +5,7 @@ Critique :
   - Statut: corrigé via commit 21709aa (mount /library + FIX_LIBRARY_PERMS + test write OK).
 
 - La persistence des données à chaque reconstruction on efface tout paramétre et librairie il faut le rendre persistent. 
-  - Statut: corrigé via commit 21709aa (prefix Proton déplacé vers /data + volumes dédiés).
+  - Statut: corrigé via commit 31ffd5c (AppData ComicRack redirigé vers /data/comicrack).
 
 Analyse / pistes :
 - R/W Library : vérifier UID/GID effectifs dans le conteneur et les droits sur le dossier host (./library). Si le conteneur tourne en user 1000:1000, le dossier host doit être writable par 1000:1000. Si besoin, créer un volume séparé /data et monter en RW.
@@ -29,7 +29,7 @@ Analyse / pistes :
 - Langue FR : vérifier présence du zip langue dans /opt/comicrack/Languages et/ou copier vers AppData (cYo). Peut nécessiter un import dans le dossier data utilisateur.
 - Dark mode : vérifier le mode compatible avec CE/Proton (option CLI ou config). Si -dark non supporté, forcer via paramètre dans Config.xml.
 - Mapping Data : créer volumes /data (persist), /library (media), /import (plugins). Définir chemins dans variables et copier plugins au boot.
-  - Tests Docker: `docker compose up -d --build`, `touch /library/.rw_test` en user 1000 OK, prefix créé dans `/data/wineprefix`.
+  - Tests Docker: `docker compose up -d --build`, `touch /library/.rw_test` en user 1000 OK, symlink AppData → `/data/comicrack`.
 
 Bas :
 - Voir si on peut modifier la font pas le standard microsoft la elles sont très moche (peut ajouter des fonts winetricks)
