@@ -22,6 +22,7 @@ Haut :
     - Library => Contient la library 
     - Data contient les données de l'application & paramétre avec un dossier import pour déposer les plugin comicrack  
   - Statut: corrigé via commit 21709aa (volumes /library /data /import + copie plugins/scripts).
+  - Gitignore: data/ + import/ ajoutés (commit à venir).
     
 Analyse / pistes :
 - Installation vs service : scinder start.sh (init: prefix/pack/registry) et run.sh (lancement). Ajouter un marker pour init une seule fois.
