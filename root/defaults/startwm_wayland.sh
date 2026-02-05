@@ -9,8 +9,8 @@ ulimit -c 0
 
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/config/.XDG}
 export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}
-export XCURSOR_THEME=${XCURSOR_THEME:-whiteglass}
-export XCURSOR_SIZE=${XCURSOR_SIZE:-24}
+export XCURSOR_THEME=${XCURSOR_THEME:-default}
+export XCURSOR_SIZE=${CURSOR_SIZE:-400}
 
 # labwc -s lance la commande après initialisation du compositor
 exec labwc -c /defaults/labwc.xml -s "/opt/scripts/start.sh"
