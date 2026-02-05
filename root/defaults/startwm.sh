@@ -18,5 +18,15 @@ if command -v xrdb >/dev/null 2>&1; then
     printf "Xcursor.theme: %s\n" "$XCURSOR_THEME" | xrdb -merge -display "$DISPLAY"
   fi
 fi
+if [ -n "${CURSOR_SIZE:-}" ] || [ -n "${XCURSOR_THEME:-}" ]; then
+  mkdir -p /config/.config/xsettingsd
+  {
+    [ -n "${CURSOR_SIZE:-}" ] && echo "Xcursor/size $CURSOR_SIZE"
+    [ -n "${XCURSOR_THEME:-}" ] && echo "Xcursor/theme \"$XCURSOR_THEME\""
+  } > /config/.config/xsettingsd/xsettingsd.conf
+  if command -v s6-svc >/dev/null 2>&1 && [ -d /run/service/svc-xsettingsd ]; then
+    s6-svc -r /run/service/svc-xsettingsd || true
+  fi
+fi
 /opt/scripts/start.sh &
 exec dbus-launch --exit-with-session openbox --config-file /defaults/menu.xml
