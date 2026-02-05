@@ -209,21 +209,22 @@ fi
 
 # ---------------------------------------------------------------------------
 # Lance ComicRack
-# Ensure working directory so relative resource lookups succeed.
+# Proton : le chemin doit être passé via Z:\ (mapping root Linux).
+#   Le working directory n'est pas suffisant — Proton résout les chemins
+#   relatifs depuis le répertoire du prefix, pas depuis le cwd.
+# Wine natif : chemin Linux direct, cwd dans COMIC_WORKDIR.
 # ---------------------------------------------------------------------------
+if [ "$USE_PROTON" = "1" ] && [ -x "$PROTON_RUN" ]; then
+  # Convertir COMIC_ARGS en chemin Z:\ pour Proton
+  PROTON_EXE="Z:\\${COMIC_ARGS#/}"
+  echo "[start] launching Proton $PROTON_EXE"
+  exec "${RUN_AS_CMD[@]}" "$PROTON_RUN" run "$PROTON_EXE"
+fi
+
+# Mode Wine natif — cd dans le workdir pour que les chemins relatifs fonctionnent
 if [ -d "$COMIC_WORKDIR" ]; then
   cd "$COMIC_WORKDIR"
 fi
-
-if [ "$USE_PROTON" = "1" ] && [ -x "$PROTON_RUN" ]; then
-  echo "[start] launching Proton $COMIC_ARGS"
-  if [ "$COMIC_DARK" = "1" ]; then
-    echo "[start] enabling ComicRack dark mode (-dark)"
-    exec "${RUN_AS_CMD[@]}" "$PROTON_RUN" run $COMIC_ARGS -dark
-  fi
-  exec "${RUN_AS_CMD[@]}" "$PROTON_RUN" run $COMIC_ARGS
-fi
-
 echo "[start] launching wine $COMIC_ARGS"
 if [ "$COMIC_DARK" = "1" ]; then
   echo "[start] enabling ComicRack dark mode (-dark)"
