@@ -7,10 +7,7 @@ set -euo pipefail
 HOME=${HOME:-/config}
 DATA_DIR=${DATA_DIR:-/data}
 IMPORT_DIR=${IMPORT_DIR:-/import}
-BASE_WINEPREFIX=${WINEPREFIX:-$DATA_DIR/wineprefix}
-if [ "$BASE_WINEPREFIX" = "$HOME/.wine" ] && [ -n "$DATA_DIR" ]; then
-  BASE_WINEPREFIX="$DATA_DIR/wineprefix"
-fi
+BASE_WINEPREFIX=${WINEPREFIX:-$HOME/.wine}
 WINEARCH=win64          # ComicRack CE est 64-bit
 DISPLAY=${DISPLAY:-:1}  # Xvfb lancé par Selkies svc-xorg
 PUID=${PUID:-1000}
@@ -127,8 +124,25 @@ if [ "$FIX_LIBRARY_PERMS" = "1" ] && [ -d /library ] && [ "$(id -u)" -eq 0 ]; th
 fi
 
 COMIC_APPDATA="$WINEPREFIX/drive_c/users/${COMIC_USER}/AppData/Roaming/cYo/ComicRack"
+COMIC_DATA_DIR="$DATA_DIR/comicrack"
 COMIC_PLUGINS_DIR="$COMIC_APPDATA/Plugins"
 COMIC_SCRIPTS_DIR="$COMIC_APPDATA/Scripts"
+mkdir -p "$COMIC_DATA_DIR" || true
+mkdir -p "$(dirname "$COMIC_APPDATA")" || true
+
+# Redirect ComicRack AppData to /data/comicrack (persisted only for app data).
+if [ ! -L "$COMIC_APPDATA" ]; then
+  if [ -d "$COMIC_APPDATA" ] && [ "$(ls -A "$COMIC_APPDATA" 2>/dev/null | wc -l)" -gt 0 ]; then
+    cp -r "$COMIC_APPDATA/." "$COMIC_DATA_DIR/" || true
+    rm -rf "$COMIC_APPDATA" || true
+  else
+    rm -rf "$COMIC_APPDATA" || true
+  fi
+  ln -s "$COMIC_DATA_DIR" "$COMIC_APPDATA" || true
+fi
+
+COMIC_PLUGINS_DIR="$COMIC_DATA_DIR/Plugins"
+COMIC_SCRIPTS_DIR="$COMIC_DATA_DIR/Scripts"
 mkdir -p "$COMIC_PLUGINS_DIR" "$COMIC_SCRIPTS_DIR" || true
 
 if [ -d "$IMPORT_DIR/Plugins" ]; then
