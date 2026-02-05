@@ -43,13 +43,14 @@ RUN set -eux; \
     fi; \
     ln -s "/opt/${GE_DIR}" /opt/proton
 
+COPY ressources/extract_comicrack.py /tmp/extract_comicrack.py
 RUN set -eux; \
     mkdir -p /opt/comicrack /opt/scripts; \
     COMICRACK_URL=$(curl -fsSL https://api.github.com/repos/maforget/ComicRackCE/releases/latest \
         | jq -r '.assets[] | select(.browser_download_url | test("ComicRackCE_v[0-9]+\\.[0-9]+\\.[0-9]+\\.zip$")) | .browser_download_url' | head -n1); \
     curl -fsSL "$COMICRACK_URL" -o /tmp/comicrack.zip; \
-    python3 -c "import zipfile; zipfile.ZipFile('/tmp/comicrack.zip').extractall('/opt/comicrack')"; \
-    rm -f /tmp/comicrack.zip
+    python3 /tmp/extract_comicrack.py; \
+    rm -f /tmp/comicrack.zip /tmp/extract_comicrack.py
 
 # svc-de lit /defaults/ pour startwm.sh et autostart
 COPY root/defaults/ /defaults/

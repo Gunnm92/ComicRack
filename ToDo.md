@@ -1,53 +1,62 @@
-La solution est maintenant fonctionnel en terme d'affichage ce qui reste à faire : 
+# ComicRack CE — ToDo
 
-Critique : 
-- La lecture écriture ne fonctionne pas les covers ne s'affiche pas (sans doute lier au souci de lecture écriture sur le dossier library)
-  - Statut: corrigé via commit 21709aa (mount /library + FIX_LIBRARY_PERMS + test write OK).
+Branche active : `wayland` (Debian Trixie + Proton-GE + labwc)
 
-- La persistence des données à chaque reconstruction on efface tout paramétre et librairie il faut le rendre persistent. 
-  - Statut: corrigé via commit 31ffd5c (AppData ComicRack redirigé vers /data/comicrack).
+---
 
-Analyse / pistes :
-- R/W Library : vérifier UID/GID effectifs dans le conteneur et les droits sur le dossier host (./library). Si le conteneur tourne en user 1000:1000, le dossier host doit être writable par 1000:1000. Si besoin, créer un volume séparé /data et monter en RW.
-- Persistance : séparer le prefix Proton/Wine et les données app dans un volume dédié (ex: /data). Lier AppData (cYo) + config + cache dans /data. Éviter que les assets de l’image soient re‑extraits à chaque rebuild dans le même dossier que les données.
+## Résolu
 
-Haut :
-- Distinguer la notion d'installation et de service dans le script start 
+- [x] **Base image Debian Trixie + Proton-GE** — `debiantrixie`, apt i386, Proton-GE dans `/opt/proton`
+- [x] **Mode Wayland** — labwc comme compositor nested sur pixelflux/Selkies, XWayland auto
+- [x] **Lancement via Proton** — chemin `Z:\opt\comicrack\ComicRack.exe` (Proton résout depuis le prefix, pas le cwd)
+- [x] **Volume `/library`** — monté R/W, permissions fixées via `FIX_LIBRARY_PERMS`
+- [x] **Persistance données** — AppData ComicRack redirigé vers `/data/comicrack` (symlink). Prefix Wine dans volume `comicrack-config`
+- [x] **Volumes `/data` + `/import`** — `/data` persiste entre redémarrages, `/import/Plugins` et `/import/Scripts` copiés au boot
+- [x] **Extraction zip ComicRack** — Le zip GitHub est créé sur Windows (backslash dans les chemins). Fix dans le Dockerfile : `info.filename.replace('\\', '/')` avant extraction
+- [x] **Curseur** — `CURSOR_SIZE=32` dans compose, `XCURSOR_SIZE` exporté dans startwm_wayland.sh depuis `CURSOR_SIZE`
+- [x] **DPI Wine** — `WINE_DPI=150` via registre (`LogPixels` + `Win8DpiScaling`)
+- [x] **Police Wine** — `WINE_FONT=Arial` via FontSubstitutes (HKCU + HKLM)
+- [x] **library/ retiré du tracking git** — `git filter-repo` pour éradiquer de l'historique
 
-- La langue française ne s'installe pas dans comicrack il n'y a que l'anglais 
+## En cours / À tester après rebuild
 
-- Le mode dark de comicrack ne s'applique pas 
+- [ ] **Dark mode** — `-dark` ne fonctionne pas via Proton (ComicRack se ferme immédiatement). Fonctionne en Wine natif. À résoudre : activer via `Config.xml` dans AppData (`/data/comicrack/Config.xml`) une fois ComicRack lancé au moins une fois en mode normal
+- [ ] **Langue française** — Le zip `Languages/fr.zip` existe dans `/opt/comicrack/Languages/` après le fix extraction. À tester en UI — ComicRack devrait le détacter automatiquement ou permettre de le choisir dans les paramètres
 
-- Créer un mapping pour : 
-    - Library => Contient la library 
-    - Data contient les données de l'application & paramétre avec un dossier import pour déposer les plugin comicrack  
-  - Statut: corrigé via commit 21709aa (volumes /library /data /import + copie plugins/scripts).
-  - Gitignore: data/ + import/ ajoutés (commit 0e74c80).
-    
-Analyse / pistes :
-- Installation vs service : scinder start.sh (init: prefix/pack/registry) et run.sh (lancement). Ajouter un marker pour init une seule fois.
-- Langue FR : vérifier présence du zip langue dans /opt/comicrack/Languages et/ou copier vers AppData (cYo). Peut nécessiter un import dans le dossier data utilisateur.
-- Dark mode : vérifier le mode compatible avec CE/Proton (option CLI ou config). Si -dark non supporté, forcer via paramètre dans Config.xml.
-- Mapping Data : créer volumes /data (persist), /library (media), /import (plugins). Définir chemins dans variables et copier plugins au boot.
-  - Tests Docker: `docker compose up -d --build`, `touch /library/.rw_test` en user 1000 OK, symlink AppData → `/data/comicrack`.
+## À faire — Haut priorité
 
-Bas :
-- Voir si on peut modifier la font pas le standard microsoft la elles sont très moche (peut ajouter des fonts winetricks)
+- [ ] **Clavier azerty** — Le layout xkb dans le container est pas azerty. Piste : `setxkbmap fr` dans `startwm_wayland.sh` ou via xsettingsd. Ne peut être testé que depuis l'UI (pas depuis `docker exec` sans XAUTHORITY)
 
-- Augementer legerement le cursor tester la valeur 38 par exemple 
+## À faire — Bas priorité
 
-- Mettre les variables d'environnement par defaut aligné sur le docker compose pour n'avoir qu'a surchargé lorsque c'est absolument nécéssaire fixer le title 'ComicRack-Web' 
+- [ ] **Lancement différé** — ComicRack se lance dès le démarrage du container même si personne ne se connecte. Option : `AUTO_START=0` + bouton dans l'UI, ou attendre la première connexion WebSocket avant de lancer
+- [ ] **Fond d'écran** — Le bureau labwc est noir. Option : image of the day via un script background (feh ou eog)
+- [ ] **Cursor pack Windows** — `CURSOR_PACK=1` dans compose mais les curseurs `.cur` ne sont pas appliqués via le registre Wine dans le prefix Proton. À déboguer si le curseur par défaut n'est pas satisfaisant
 
-- Fixer le clavier dans le terminal il est ni azerty ni qwerty voir d'ou viens l'erreur. 
+## Architecture / notes
 
-- Voir il est possible de lancer comicrack lorsque la fenetre est rééllement afficher (éviter que le docker consomme de la ressources inutilement) ou ajouter un raccourci pour le lancer 
+```
+docker-compose.yml
+  volumes:
+    ./library  → /library   (comics .cbz)
+    ./data     → /data      (AppData ComicRack, persistant)
+    ./import   → /import    (Plugins + Scripts à copier au boot)
+    comicrack-config → /config  (prefix Wine/Proton, cache)
 
-- Voir si on peut changer le fond d'ecran noir par une image of the day 
+  env clés:
+    PIXELFLUX_WAYLAND=true   → Selkies en mode Wayland
+    USE_PROTON=1             → proton run au lieu de wine
+    COMIC_DARK=1             → flag -dark passé à ComicRack.exe
+    CURSOR_SIZE=32           → XCURSOR_SIZE (Wayland) + CursorBaseSize (Wine)
+    WINE_DPI=150             → LogPixels dans le registre Wine
 
-Analyse / pistes :
-- Fonts : installer corefonts + liberation + noto (ou ttf‑mscorefonts si dispo). Définir FontSubstitutes via registry et vérifier rendu.
-- Cursor : côté Wayland, régler XCURSOR_SIZE + xsettingsd. Côté Wine/Proton, vérifier UseXCursor + CursorBaseSize.
-- Variables par défaut : déplacer les defaults dans start.sh, alignés avec docker-compose (TITLE, DPI, etc.).
-- Clavier terminal : vérifier layout Openbox/xkb (setxkbmap fr). Peut venir de Selkies/xsettingsd.
-- Lancement différé : attendre socket Wayland/X + première connexion web avant de lancer. Option “AUTO_START=0” + script manuel.
-- Fond d’écran : set background via openbox/autostart (feh) ou script qui télécharge “image of the day”.
+start.sh flow:
+  1. Détecte XWayland (scan /tmp/.X11-unix/)
+  2. Init prefix si nécessaire (wineboot via proton)
+  3. Fix perms /library
+  4. Symlink AppData → /data/comicrack
+  5. Copy plugins/scripts depuis /import
+  6. Winetricks (dotnet48, skip si déjà présent)
+  7. DPI, curseur, polices via registre Wine
+  8. exec proton run Z:\opt\comicrack\ComicRack.exe [-dark]
+```

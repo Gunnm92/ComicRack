@@ -31,7 +31,6 @@ services:
       - DATA_DIR=/data
       - IMPORT_DIR=/import
       - FIX_LIBRARY_PERMS=1
-      - WINEPREFIX=/data/wineprefix
       # Standard LSIO permissions.
       - PUID=1000
       - PGID=1000

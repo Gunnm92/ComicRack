@@ -268,6 +268,8 @@ fi
 if [ "$USE_PROTON" = "1" ] && [ -x "$PROTON_RUN" ]; then
   # Convertir COMIC_ARGS en chemin Z:\ pour Proton
   PROTON_EXE="Z:\\${COMIC_ARGS#/}"
+  # Note : -dark n'est pas supporté par ComicRack CE via Proton.
+  # Le dark mode sera géré via Config.xml dans AppData si disponible.
   echo "[start] launching Proton $PROTON_EXE"
   exec "${RUN_AS_CMD[@]}" "$PROTON_RUN" run "$PROTON_EXE"
 fi
