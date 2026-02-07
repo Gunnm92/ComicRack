@@ -18,7 +18,7 @@ RUN dpkg --add-architecture i386 && \
         wine wine64 wine32:i386 winetricks \
         libc6:i386 libgcc-s1:i386 libstdc++6:i386 \
         x11-utils x11-xserver-utils xcursor-themes \
-        labwc xwayland && \
+        weston xwayland && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        PROTON_GE_VERSION: GE-Proton10-28
+        PROTON_GE_VERSION: GE-Proton10-29
     container_name: comicrack-web
     image: comicrack-web
     ports:
@@ -30,7 +30,7 @@ services:
       - XCURSOR_THEME=default
       - WINE_FONT=Arial
       - COMIC_DARK=1
-      - USE_PROTON=1
+      - USE_PROTON=0
       - WINETRICKS_PACKAGES=dotnet48 corefonts mono gecko
       - CURSOR_PACK=1
       - CURSOR_PACK_VARIANT=default
