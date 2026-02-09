@@ -1,3 +1,7 @@
+# ============================================================================
+# ComicRack Community Edition - Docker Compose Configuration
+# ============================================================================
+
 services:
   comicrack:
     build:
@@ -7,42 +11,61 @@ services:
         PROTON_GE_VERSION: GE-Proton10-29
     container_name: comicrack-web
     image: comicrack-web
-    ports:
-      - "5700:3000"   # Selkies HTTP
-      - "5701:3001"   # Selkies HTTPS
-    volumes:
-      - ./library:/library
-      - ./data:/data
-      - ./import:/import
-      # AppData ComicRack monté directement dans le prefix Proton.
-      # Wine/Proton ne suit pas les symlinks vers des volumes extérieurs,
-      # donc on monte ici plutôt que de faire un ln -s dans start.sh.
-      - ./data/comicrack:/config/.wine/pfx/drive_c/users/steamuser/AppData/Roaming/cYo/ComicRack Community Edition
-      - comicrack-config:/config
-    environment:
-      # Mode Wayland — Selkies/pixelflux fournit le socket, labwc est le compositor.
-      # Wine tourne via XWayland sur labwc. Proton-GE utilisé à la place de Wine natif.
-      - PIXELFLUX_WAYLAND=true
-      - SELKIES_MANUAL_WIDTH=1280
-      - SELKIES_MANUAL_HEIGHT=800
-      - WINE_DPI=120 # 96=defaut, 120=1080p, 150=1280x800, 192=4K
-      - CURSOR_SIZE=56 # 32=defaut, 38/48/56 pour augmenter legerement
-      - XCURSOR_THEME=default
-      - WINE_FONT=Arial
-      - COMIC_DARK=1
-      - USE_PROTON=0
-      - WINETRICKS_PACKAGES=dotnet48 corefonts mono gecko
-      - CURSOR_PACK=1
-      - CURSOR_PACK_VARIANT=default
-      - DATA_DIR=/data
-      - IMPORT_DIR=/import
-      - FIX_LIBRARY_PERMS=1
-      # Standard LSIO permissions.
-      - PUID=1000
-      - PGID=1000
-      - LC_ALL=fr_FR.UTF-8
-      - TITLE=ComicRack-Web
     restart: unless-stopped
 
+    # ------------------------------------------------------------------------
+    # Network Ports
+    # ------------------------------------------------------------------------
+    ports:
+      - "5700:3000"   # HTTP Web Interface
+      - "5701:3001"   # HTTPS Web Interface
+
+    # ------------------------------------------------------------------------
+    # Volumes
+    # ------------------------------------------------------------------------
+    volumes:
+      # Comic library (read comics from here)
+      - ./library:/library
+      # General data directory
+      - ./data:/data
+      # Import directory (for new comics)
+      - ./import:/import
+      # ComicRack AppData (settings, database)
+      - ./data/comicrack:/config/.wine/drive_c/users/steamuser/AppData/Roaming/cYo/ComicRack Community Edition
+      # Persistent config (Wine prefix, desktop settings)
+      - comicrack-config:/config
+
+    # ------------------------------------------------------------------------
+    # Environment Variables
+    # ------------------------------------------------------------------------
+    environment:
+      # User/Group IDs
+      - PUID=1000
+      - PGID=1000
+
+      # Locale
+      - LC_ALL=fr_FR.UTF-8
+
+      # Keyboard Layout
+      - KEYBOARD=fr-fr-azerty
+
+      # Window Title
+      - TITLE=ComicRack-Web
+
+      # Webtop/Selkies Resolution
+      - CUSTOM_USER=abc
+      - SELKIES_MANUAL_WIDTH=1280
+      - SELKIES_MANUAL_HEIGHT=800
+
+      # Wine Configuration
+      - WINETRICKS_PACKAGES=dotnet48 corefonts mono gecko
+
+      # Application Directories
+      - DATA_DIR=/data
+      - IMPORT_DIR=/import
+
+# ============================================================================
+# Named Volumes
+# ============================================================================
 volumes:
   comicrack-config:

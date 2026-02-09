@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ComicRack Community Edition
+Comment=Comic Book Reader and Manager
+Exec=wine /opt/comicrack/ComicRack.exe -dark
+Icon=4519_ComicRack.0
+Terminal=false
+Categories=Graphics;Viewer;
+StartupNotify=true
